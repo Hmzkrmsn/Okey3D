@@ -1,392 +1,276 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Okey 3D Cafe</title>
+<title>Okey 3D Kafe</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;font-family:Arial;background:#182536}
-#ui{
-position:fixed;top:12px;left:12px;
-background:#182536eF;color:white;
-padding:14px;border-radius:12px;
-z-index:5;line-height:1.7;font-size:14px
-}
+body{margin:0;overflow:hidden;font-family:Arial,sans-serif;background:#182536}
+#ui,#help{position:fixed;top:12px;background:#182536ee;color:#fff;padding:12px;border-radius:10px;z-index:5;font-size:13px;line-height:1.6}
+#ui{left:12px}#help{right:12px;text-align:right}
 #tip{color:#9ed5ff}
-#help{
-position:fixed;top:12px;right:12px;
-background:#182536eF;color:white;
-padding:12px;border-radius:10px;
-z-index:5;font-size:13px
-}
-#game{
-position:fixed;bottom:0;left:0;width:100%;
-background:linear-gradient(transparent,#101923 25%);
-padding:35px 12px 12px;z-index:5;color:white;
-}
-#tiles{
-display:flex;gap:5px;overflow-x:auto;
-justify-content:center;padding:8px;
-}
-.tile{
-flex:0 0 39px;height:58px;background:#f5edda;
-border:2px solid #c8bda5;border-radius:6px;
-display:flex;align-items:center;justify-content:center;
-font-size:21px;font-weight:bold;cursor:pointer;
-box-shadow:0 3px 5px #0008;
-}
+#game{position:fixed;bottom:0;left:0;width:100%;background:linear-gradient(transparent,#101923 25%);padding:35px 12px 12px;z-index:5;color:#fff}
+#tiles{display:flex;gap:5px;overflow-x:auto;justify-content:center;padding:14px 8px 6px}
+.tile{flex:0 0 38px;height:56px;background:#f5edda;border:2px solid #c8bda5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:bold;cursor:pointer;box-shadow:0 3px 5px #0008}
+.tile.okey{border-color:#e6a400;background:#fff3c4}
 .tile.selected{transform:translateY(-12px);border:3px solid #42baff}
-#buttons{text-align:center;margin-top:8px}
-button{
-border:0;border-radius:8px;padding:10px 17px;
-margin:3px;background:#287ac0;color:white;
-font-weight:bold;cursor:pointer
-}
-button:disabled{opacity:.4}
-#status{text-align:center;font-size:13px;color:#d6eaff}
+#buttons{text-align:center;margin-top:6px}
+button{border:0;border-radius:8px;padding:10px 14px;margin:3px;background:#287ac0;color:#fff;font-weight:bold;cursor:pointer;font-size:14px}
+button:disabled{opacity:.35;cursor:default}
+#tea{background:#b8561a}
+#status{text-align:center;font-size:14px;color:#d6eaff}
+#lobby{position:fixed;inset:0;z-index:10;background:#182536f2;display:flex;align-items:center;justify-content:center;color:#fff}
+.box{width:min(360px,92vw);text-align:center}
+.box input{padding:10px;border-radius:8px;border:0;margin:4px;width:150px;font-size:15px}
+#lt{margin:12px 0;color:#9ed5ff;min-height:20px;white-space:pre-line}
 </style>
 </head>
 <body>
+<div id="lobby"><div class="box">
+<h2>Okey 3D Kafe</h2>
+<input id="nm" placeholder="Adın" maxlength="12"><br>
+<button id="solo">Tek başına (botlarla)</button>
+<button id="mk">Oda kur</button><br>
+<input id="cd" placeholder="Oda kodu" maxlength="4">
+<button id="jn">Odaya katıl</button>
+<div id="lt"></div>
+<button id="go" hidden>Oyunu başlat</button>
+</div></div>
 
-<div id="ui">
-<b>OKEY 3D CAFE</b><br>
-WASD: Hareket<br>
-Fare: Kamera<br>
-E: Otur / Kalk<br>
-<span id="tip">Kahvehaneye hoş geldin!</span>
-</div>
-
-<div id="help">
-<b>101 OKEY</b><br>
-Taşlarını seçebilirsin.<br>
-Diğer oyuncuların taşları gizli.
-</div>
+<div id="ui"><b>OKEY 3D KAFE</b><br>Fare sürükle: etrafa bak<br>E: Otur / Kalk · WASD: yürü<br><span id="tip"></span></div>
+<div id="help"><b>101 OKEY</b><br>Oyun başlayınca gösterge burada.</div>
 
 <div id="game">
-<div id="status">Masaya yaklaş ve E tuşuna bas!</div>
+<div id="status">Bir oyun başlat veya odaya katıl.</div>
 <div id="tiles"></div>
 <div id="buttons">
-<button id="draw">Taş çek</button>
-<button id="discard">Taş at</button>
+<button id="dp" disabled>Desteden çek</button>
+<button id="dd" disabled>Soldan al</button>
+<button id="ds" disabled>Taş at</button>
+<button id="so">Sırala</button>
 <button id="sit">Otur / Kalk (E)</button>
-</div>
-</div>
+<button id="tea">☕ Çay iste</button>
+</div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="module">
-import * as THREE from
-'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const $=id=>document.getElementById(id);
+const msg=t=>$('status').textContent=t;
+const TC=['#d83b36','#2679c9','#259b5a','#292929'];
+const CN=['kırmızı','mavi','yeşil','siyah'];
 
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x9bc4dc);
-
-const camera=new THREE.PerspectiveCamera(
-70,innerWidth/innerHeight,.1,100
-);
-
+/* ---------- SAHNE ---------- */
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bc4dc);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,100);
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;
-document.body.appendChild(renderer.domElement);
-
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;document.body.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0x777777,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(8,15,8);sun.castShadow=true;scene.add(sun);
+function cube(w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c}));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;scene.add(m);return m}
 
-const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(8,15,8);
-sun.castShadow=true;
-scene.add(sun);
+cube(50,1,50,0x829b70,0,-.5,0);cube(50,9,1,0xe6d5b9,0,4.5,-12);
+cube(1,9,25,0xcdbb9f,-12,4.5,0);cube(1,9,25,0xcdbb9f,12,4.5,0);
+cube(5,3,.15,0x76b9d4,-4,4,-11.4);cube(5,3,.15,0x76b9d4,4,4,-11.4);
+cube(4,.3,3,0x2f6b45,0,1.5,0);
+for(const x of[-1.5,1.5])for(const z of[-1,1])cube(.25,1.5,.25,0x493020,x,.75,z);
+const A=i=>i*Math.PI/2;
+const seatPos=i=>({x:Math.sin(A(i))*3,z:Math.cos(A(i))*2.5});
+for(let a=0;a<4;a++){const p=seatPos(a);cube(1,.3,1,0x80502c,p.x,.8,p.z);cube(1.1,1.3,.2,0x80502c,p.x+Math.sin(A(a))*.5,1.4,p.z+Math.cos(A(a))*.5)}
+for(const p of[[-7,-5],[7,-5],[-7,5],[7,5]]){cube(3,.3,2,0x75472b,p[0],1.5,p[1]);for(const x of[-1,1])for(const z of[-.6,.6])cube(.2,1.5,.2,0x493020,p[0]+x,.75,p[1]+z)}
+cube(5,1.3,1.5,0x68442b,0,.65,-9);cube(5.2,.15,1.7,0x3e281b,0,1.35,-9);
 
-function cube(w,h,d,c,x,y,z){
-const m=new THREE.Mesh(
-new THREE.BoxGeometry(w,h,d),
-new THREE.MeshStandardMaterial({color:c})
-);
-m.position.set(x,y,z);
-m.castShadow=true;
-m.receiveShadow=true;
-scene.add(m);
-return m;
+// deste yığını ve atılan taşlar
+const pileMesh=cube(.5,1,.5,0xe5d8b7,0,1.7,0);pileMesh.visible=false;
+const discMesh=[0,1,2,3].map(i=>{const a=A(i);const m=cube(.4,.12,.55,0xffffff,Math.sin(a)*1.5+Math.cos(a)*1,1.72,Math.cos(a)*1.1-Math.sin(a)*1);m.visible=false;return m});
+
+function makeTea(){const g=new THREE.Group();
+g.add(new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.02,16),new THREE.MeshStandardMaterial({color:0xffffff})));
+const gl=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.26,12),new THREE.MeshStandardMaterial({color:0xe6eeee,transparent:true,opacity:.55}));gl.position.y=.14;g.add(gl);
+const t=new THREE.Mesh(new THREE.CylinderGeometry(.115,.085,.18,12),new THREE.MeshStandardMaterial({color:0xc0451a}));t.position.y=.12;g.add(t);return g}
+
+const skin=new THREE.MeshStandardMaterial({color:0xffc38e}),dark=new THREE.MeshStandardMaterial({color:0x252b35});
+function person(col){const p=new THREE.Group(),sh=new THREE.MeshStandardMaterial({color:col});
+const b=new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,1.1,6),sh);b.position.y=1.25;p.add(b);
+const h=new THREE.Mesh(new THREE.IcosahedronGeometry(.4,1),skin);h.position.y=2.1;p.add(h);
+for(const x of[-.22,.22]){const l=new THREE.Mesh(new THREE.BoxGeometry(.2,.8,.2),dark);l.position.set(x,.4,0);p.add(l)}
+for(const x of[-.45,.45]){const a=new THREE.Mesh(new THREE.BoxGeometry(.2,.85,.2),skin);a.position.set(x,1.35,0);p.add(a)}
+scene.add(p);return p}
+
+const player=person(0x2585dc);player.position.set(0,0,6);
+const avatars=[0xd9534f,0x5cb85c,0xf0ad4e,0x9b59b6].map((c,i)=>{const p=person(c),s=seatPos(i);p.position.set(s.x,.3,s.z);p.rotation.y=A(i)+Math.PI;p.visible=false;return p});
+
+/* ---------- GARSON ---------- */
+const waiter=person(0xf2f2f2),HOME=new THREE.Vector3(0,0,-10.2);waiter.position.copy(HOME);
+const tray=makeTea();tray.position.set(.2,1.2,.6);tray.visible=false;waiter.add(tray);
+let wState='idle',wp=[],teaN=0;
+function requestTea(){
+ if(wState!=='idle'){msg('Garson zaten yolda.');return}
+ const s=me>=0?me:0,p=seatPos(s),tx=p.x+(s%2===0?1.4:0),tz=p.z+(s%2===1?1.4:0),side=tx>=0?4.6:-4.6;
+ wp=[new THREE.Vector3(side,0,-8),new THREE.Vector3(side,0,tz),new THREE.Vector3(tx,0,tz)];
+ wState='going';tray.visible=true;$('tea').disabled=true;msg('Garson: "Hemen getiriyorum!"');
 }
-
-function cylinder(r,h,c,x,y,z){
-const m=new THREE.Mesh(
-new THREE.CylinderGeometry(r,r,h,12),
-new THREE.MeshStandardMaterial({color:c})
-);
-m.position.set(x,y,z);
-m.castShadow=true;
-scene.add(m);
-return m;
+function placeTea(){const s=me>=0?me:0,a=A(s),k=(teaN++%4)*.4,t=makeTea();
+ t.position.set(Math.sin(a)*1.4-Math.cos(a)*.9+Math.cos(a)*k,1.66,Math.cos(a)*1+Math.sin(a)*.9-Math.sin(a)*k);scene.add(t);tray.visible=false}
+function updateWaiter(){
+ if(wState==='idle')return;
+ const t=wp[0],dx=t.x-waiter.position.x,dz=t.z-waiter.position.z,d=Math.hypot(dx,dz);
+ if(d<.1){wp.shift();if(!wp.length){
+  if(wState==='going'){placeTea();msg('Çayın geldi, afiyet olsun! ☕');wState='back';wp=[new THREE.Vector3(waiter.position.x>0?4.6:-4.6,0,-8),HOME.clone()]}
+  else{wState='idle';waiter.rotation.y=0;waiter.position.y=0;$('tea').disabled=false}}return}
+ waiter.position.x+=dx/d*.07;waiter.position.z+=dz/d*.07;waiter.rotation.y=Math.atan2(dx,dz);
+ waiter.position.y=Math.abs(Math.sin(performance.now()*.012))*.06;
 }
+$('tea').onclick=requestTea;
 
-// KAFE
-cube(50,1,50,0x829b70,0,-.5,0);
-cube(50,9,1,0xe6d5b9,0,4.5,-12);
-cube(1,9,25,0xcdbb9f,-12,4.5,0);
-cube(1,9,25,0xcdbb9f,12,4.5,0);
-
-// PENCERELER
-cube(5,3,.15,0x76b9d4,-4,4,-11.4);
-cube(5,3,.15,0x76b9d4,4,4,-11.4);
-
-// ANA MASA
-cube(4,.3,3,0x75472b,0,1.5,0);
-for(const x of [-1.5,1.5])
-for(const z of [-1,1])
-cube(.25,1.5,.25,0x493020,x,.75,z);
-
-// MASA TAŞLARI
-const colors=[0xe74c3c,0x3285dc,0x2ca66b,0xe5d8b7];
-for(let i=0;i<16;i++){
-cube(.35,.17,.55,colors[i%4],
--1.5+(i%8)*.42,1.74,-.5+Math.floor(i/8)*.8);
+/* ---------- OYUN MANTIĞI (sunucu = oda kuran) ---------- */
+let G=null,L={type:['human','empty','empty','empty'],names:['','','','']},conns=[],peer=null,conn=null,isHost=false;
+let me=-1,view=null,hand=[],selId=null,started=false,okey=null;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function newGame(){
+ let d=[],id=0;for(let k=0;k<2;k++)for(let c=0;c<4;c++)for(let n=1;n<=13;n++)d.push({id:id++,n,c});
+ d.push({id:id++,n:0,c:0},{id:id++,n:0,c:1});shuffle(d);
+ let k=d.findIndex(t=>t.n>0);const ind=d.splice(k,1)[0];
+ const hands=[0,1,2,3].map(i=>d.splice(0,i===0?22:21));
+ G={type:L.type.map(t=>t==='empty'?'bot':t),names:L.names.map((n,i)=>n||'Bot '+(i+1)),hands,pile:d,disc:[[],[],[],[]],turn:0,ind,over:false};
 }
-
-// SANDALYELER
-for(let a=0;a<4;a++){
-const angle=a*Math.PI/2;
-const x=Math.sin(angle)*3;
-const z=Math.cos(angle)*2.5;
-cube(1,.3,1,0x80502c,x,.8,z);
-cube(1.1,1.3,.2,0x80502c,
-x,1.4,z+Math.cos(angle)*.5);
+const mk=i=>({t:'st',seat:i,hand:G.hands[i],pile:G.pile.length,top:G.disc.map(x=>x[x.length-1]||null),turn:G.turn,ind:G.ind,names:G.names,type:G.type,over:G.over});
+function sendAll(){for(let i=0;i<4;i++){if(G.type[i]!=='human')continue;if(i===0)apply(mk(0));else if(conns[i])conns[i].send(mk(i))}}
+function act(s,m){
+ if(!G||G.over||s!==G.turn)return;const h=G.hands[s];
+ if(m.t==='draw'&&h.length===21){
+  if(m.src==='disc'){const p=(s+3)%4;if(!G.disc[p].length)return;h.push(G.disc[p].pop())}
+  else{if(!G.pile.length){G.over=true;sendAll();return}h.push(G.pile.pop())}
+ }else if(m.t==='discard'&&h.length===22){
+  const k=h.findIndex(t=>t.id===m.id);if(k<0)return;G.disc[s].push(h.splice(k,1)[0]);G.turn=(s+1)%4;
+ }else return;
+ sendAll();botTick();
 }
-
-// EK MASALAR
-for(const p of [[-7,0,-5],[7,0,-5],[-7,0,5],[7,0,5]]){
-cube(3,.3,2,0x75472b,p[0],1.5,p[2]);
-for(const x of [-1,1])
-for(const z of [-.6,.6])
-cube(.2,1.5,.2,0x493020,p[0]+x,.75,p[2]+z);
+function botTick(){
+ if(!G||G.over||G.type[G.turn]!=='bot')return;
+ setTimeout(()=>{const s=G.turn;if(G.type[s]!=='bot')return;act(s,{t:'draw',src:'pile'});
+  setTimeout(()=>{const h=G.hands[s];if(h.length===22)act(s,{t:'discard',id:h[Math.random()*h.length|0].id})},900)},1300);
 }
+const send=m=>isHost?act(0,m):conn&&conn.send(m);
 
-// GARSON TEZGAHI
-cube(5,1.3,1.5,0x68442b,0,.65,-9);
-cube(5.2,.15,1.7,0x3e281b,0,1.35,-9);
-
-// ÇAY BARDAĞI
-const glass=new THREE.Mesh(
-new THREE.CylinderGeometry(.16,.12,.4,12),
-new THREE.MeshStandardMaterial({
-color:0xe6eeee,transparent:true,opacity:.6
-})
-);
-glass.position.set(3,.3,-3);
-scene.add(glass);
-
-const tea=new THREE.Mesh(
-new THREE.CylinderGeometry(.13,.1,.2,12),
-new THREE.MeshStandardMaterial({color:0xc66a19})
-);
-tea.position.set(3,.28,-3);
-scene.add(tea);
-
-// OYUNCU KARAKTERİ
-const player=new THREE.Group();
-
-const blue=new THREE.MeshStandardMaterial({color:0x2585dc});
-const skin=new THREE.MeshStandardMaterial({color:0xffc38e});
-const dark=new THREE.MeshStandardMaterial({color:0x252b35});
-
-const body=new THREE.Mesh(
-new THREE.CylinderGeometry(.35,.45,1.1,6),blue
-);
-body.position.y=1.25;
-player.add(body);
-
-const head=new THREE.Mesh(
-new THREE.IcosahedronGeometry(.4,1),skin
-);
-head.position.y=2.1;
-player.add(head);
-
-for(const x of [-.22,.22]){
-const leg=new THREE.Mesh(
-new THREE.BoxGeometry(.2,.8,.2),dark
-);
-leg.position.set(x,.4,0);
-player.add(leg);
-}
-
-for(const x of [-.45,.45]){
-const arm=new THREE.Mesh(
-new THREE.BoxGeometry(.2,.85,.2),skin
-);
-arm.position.set(x,1.35,0);
-player.add(arm);
-}
-
-player.position.set(0,0,6);
-scene.add(player);
-
-// OYUN DURUMU
-let seated=false;
-let selected=-1;
-let hand=[];
-let pile=[];
-
-const numbers=[];
-for(let i=1;i<=13;i++){
-for(let c=0;c<4;c++){
-numbers.push({n:i,c});
-numbers.push({n:i,c});
-}
-}
-numbers.sort(()=>Math.random()-.5);
-hand=numbers.splice(0,21);
-pile=numbers;
-
-const tileColors=['#d83b36','#2679c9','#259b5a','#292929'];
-
+/* ---------- ARAYÜZ ---------- */
+const tl=t=>t.n||'★';
 function renderHand(){
-const area=document.getElementById('tiles');
-area.innerHTML='';
-hand.sort((a,b)=>a.c-b.c||a.n-b.n);
+ const a=$('tiles');a.innerHTML='';
+ hand.forEach(t=>{const e=document.createElement('div');
+  e.className='tile'+(selId===t.id?' selected':'')+((okey&&t.n===okey.n&&t.c===okey.c)||t.n===0?' okey':'');
+  e.style.color=TC[t.c];e.textContent=tl(t);
+  e.onclick=()=>{selId=selId===t.id?null:t.id;renderHand();buttons()};a.appendChild(e)});
+}
+function buttons(){
+ if(!view)return;const my=view.turn===me&&!view.over,n=view.hand.length,prev=view.top[(me+3)%4];
+ $('dp').disabled=!(my&&n===21);
+ $('dd').disabled=!(my&&n===21&&prev);
+ $('dd').innerHTML='Soldan al'+(prev?` (<span style="color:${prev.n?TC[prev.c]==='#292929'?'#fff':TC[prev.c]:'#fff'}">${tl(prev)} ${CN[prev.c]}</span>)`:'');
+ $('ds').disabled=!(my&&n===22&&selId!==null);
+ msg(view.over?'Deste bitti, oyun sona erdi.':my?(n===22?'Sıra sende: bir taş seç ve at.':'Sıra sende: taş çek.'):'Sıra: '+view.names[view.turn]);
+}
+function apply(st){
+ view=st;me=st.seat;const ids=new Set(st.hand.map(t=>t.id));
+ hand=hand.filter(t=>ids.has(t.id)).concat(st.hand.filter(t=>!hand.some(h=>h.id===t.id)));
+ if(selId!==null&&!ids.has(selId))selId=null;
+ okey={n:st.ind.n%13+1,c:st.ind.c};
+ $('help').innerHTML=`<b>101 OKEY</b><br>Gösterge: <b style="color:${TC[st.ind.c]==='#292929'?'#fff':TC[st.ind.c]}">${st.ind.n} ${CN[st.ind.c]}</b><br>Okey: <b>${okey.n} ${CN[okey.c]}</b><br>Destede ${st.pile} taş`;
+ if(!started){started=true;$('lobby').style.display='none';sit(true)}
+ pileMesh.visible=st.pile>0;const sc=st.pile*.02+.02;pileMesh.scale.y=sc;pileMesh.position.y=1.65+sc/2;
+ for(let i=0;i<4;i++){const t=st.top[i];discMesh[i].visible=!!t;if(t)discMesh[i].material.color.set(t.n?TC[t.c]:'#888888');
+  avatars[i].visible=st.type[i]!=='empty'&&i!==me}
+ renderHand();buttons();
+}
+$('dp').onclick=()=>send({t:'draw',src:'pile'});
+$('dd').onclick=()=>send({t:'draw',src:'disc'});
+$('ds').onclick=()=>{if(selId!==null){send({t:'discard',id:selId});selId=null}};
+$('so').onclick=()=>{hand.sort((a,b)=>a.c-b.c||a.n-b.n);renderHand()};
 
-hand.forEach((t,i)=>{
-const el=document.createElement('div');
-el.className='tile'+(selected===i?' selected':'');
-el.style.color=tileColors[t.c];
-el.textContent=t.n;
-el.onclick=()=>{
-selected=selected===i?-1:i;
-renderHand();
-};
-area.appendChild(el);
-});
+/* ---------- OTURMA ve KAMERA ---------- */
+let seated=false,yaw=Math.PI,pitch=.25,offY=0,offP=0;
+function sit(on){
+ if(on&&me<0){msg('Önce bir oyun başlat.');return}
+ seated=on;player.visible=!on;const s=seatPos(Math.max(me,0));
+ if(on){player.position.set(s.x,0,s.z);offY=offP=0;$('tip').textContent='Masadasın.'}
+ else{player.position.set(s.x*1.5,0,s.z*1.5);yaw=A(me)+Math.PI;$('tip').textContent='Kafede geziyorsun.'}
 }
-
-renderHand();
-
-function message(t){
-document.getElementById('status').textContent=t;
-}
-
-function drawTile(){
-if(!seated){
-message('Önce masaya oturmalısın!');
-return;
-}
-if(hand.length>=22){
-message('Elinde yeterince taş var!');
-return;
-}
-if(!pile.length){
-message('Taş kalmadı!');
-return;
-}
-hand.push(pile.pop());
-selected=-1;
-renderHand();
-message('Taş çektin!');
-}
-
-function discardTile(){
-if(!seated){
-message('Önce masaya oturmalısın!');
-return;
-}
-if(selected<0){
-message('Önce atacağın taşı seç!');
-return;
-}
-hand.splice(selected,1);
-selected=-1;
-renderHand();
-message('Taşını attın!');
-}
-
-document.getElementById('draw').onclick=drawTile;
-document.getElementById('discard').onclick=discardTile;
-
 function sitToggle(){
-const distance=player.position.distanceTo(
-new THREE.Vector3(0,0,0)
-);
-if(!seated && distance>5){
-message('Oturmak için masaya yaklaş!');
-return;
+ if(me<0){msg('Önce bir oyun başlat.');return}
+ if(!seated&&player.position.distanceTo(new THREE.Vector3(0,0,0))>7){msg('Oturmak için masaya yaklaş!');return}
+ sit(!seated);
 }
-seated=!seated;
-if(seated){
-player.position.set(0,0,3);
-message('Masaya oturdun! Taşlarını oynayabilirsin.');
-document.getElementById('tip').textContent='Masadasın!';
-}else{
-message('Masadan kalktın. Gezebilirsin.');
-document.getElementById('tip').textContent='Kafede geziyorsun.';
-}
-}
-
-document.getElementById('sit').onclick=sitToggle;
-
-// HAREKET VE KAMERA
+$('sit').onclick=sitToggle;
 const keys={};
-addEventListener('keydown',e=>{
-keys[e.key.toLowerCase()]=true;
-if(e.key.toLowerCase()==='e'&&!e.repeat)sitToggle();
-});
-addEventListener('keyup',e=>{
-keys[e.key.toLowerCase()]=false;
-});
-
-let yaw=0,pitch=.25,drag=false,lx=0,ly=0;
-
-renderer.domElement.addEventListener('pointerdown',e=>{
-drag=true;
-lx=e.clientX;
-ly=e.clientY;
-});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let drag=false,lx=0,ly=0;
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY});
 addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
+ if(seated){offY=Math.max(-1.1,Math.min(1.1,offY-dx*.004));offP=Math.max(-.5,Math.min(.5,offP-dy*.004))}
+ else{yaw-=dx*.005;pitch=Math.max(-.1,Math.min(1,pitch+dy*.005))}});
 
-addEventListener('pointermove',e=>{
-if(!drag)return;
-yaw-=(e.clientX-lx)*.005;
-pitch=Math.max(-.1,Math.min(1,
-pitch+(e.clientY-ly)*.005));
-lx=e.clientX;
-ly=e.clientY;
-});
-
+const look=new THREE.Vector3();
 function animate(){
-requestAnimationFrame(animate);
-
-if(!seated){
-const f=(keys.w?1:0)-(keys.s?1:0);
-
-// A ve D yönleri ters çevrildi
-const r=(keys.a?1:0)-(keys.d?1:0);
-
-const speed=.09;
-player.position.x+=(Math.sin(yaw)*f+Math.cos(yaw)*r)*speed;
-player.position.z+=(Math.cos(yaw)*f-Math.sin(yaw)*r)*speed;
-
-player.position.x=Math.max(-10,Math.min(10,player.position.x));
-player.position.z=Math.max(-10,Math.min(10,player.position.z));
-}
-
-const t=player.position;
-
-const targetCamera=new THREE.Vector3(
-t.x-Math.sin(yaw)*8,
-t.y+4+pitch*2,
-t.z-Math.cos(yaw)*8
-);
-
-camera.position.lerp(targetCamera,.12);
-camera.lookAt(t.x,t.y+1.2,t.z);
-
-renderer.render(scene,camera);
+ requestAnimationFrame(animate);
+ if(!seated){
+  const f=(keys.w?1:0)-(keys.s?1:0),r=(keys.a?1:0)-(keys.d?1:0);
+  player.position.x=Math.max(-10,Math.min(10,player.position.x+(Math.sin(yaw)*f+Math.cos(yaw)*r)*.09));
+  player.position.z=Math.max(-10,Math.min(10,player.position.z+(Math.cos(yaw)*f-Math.sin(yaw)*r)*.09));
+  const t=player.position;
+  camera.position.lerp(new THREE.Vector3(t.x-Math.sin(yaw)*8,4+pitch*2,t.z-Math.cos(yaw)*8),.12);
+  camera.lookAt(t.x,t.y+1.2,t.z);
+ }else{
+  const a=A(me),ey=a+Math.PI+offY,p=-.45+offP;
+  camera.position.lerp(new THREE.Vector3(Math.sin(a)*3.1,2.7,Math.cos(a)*2.6),.15);
+  look.set(camera.position.x+Math.sin(ey)*Math.cos(p),camera.position.y+Math.sin(p),camera.position.z+Math.cos(ey)*Math.cos(p));
+  camera.lookAt(look);
+ }
+ updateWaiter();renderer.render(scene,camera);
 }
 animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
-addEventListener('resize',()=>{
-camera.aspect=innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
-});
+/* ---------- LOBİ ve ÇEVRİMİÇİ ---------- */
+const nm=()=>($('nm').value.trim()||'Oyuncu');
+const lobbyTxt=()=>L.names.map((n,i)=>`${i+1}. ${L.type[i]==='empty'?'(boş, bot olacak)':n}`).join('\n');
+function lobbyBroadcast(){$('lt').textContent='Oda kodu: '+code+'\n'+lobbyTxt();conns.forEach(c=>c&&c.send({t:'lobby',txt:'Oda kodu: '+code+'\n'+lobbyTxt()}))}
+let code='';
+$('solo').onclick=()=>{isHost=true;me=0;L.names[0]=nm();newGame();sendAll();botTick()};
+$('mk').onclick=()=>{
+ if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi, internetini kontrol et.';return}
+ isHost=true;me=0;L.names[0]=nm();code=Math.random().toString(36).slice(2,6).toUpperCase();
+ $('lt').textContent='Oda kuruluyor...';
+ peer=new Peer('okey3d-'+code);
+ peer.on('error',e=>$('lt').textContent='Bağlantı hatası: '+e.type);
+ peer.on('open',()=>{lobbyBroadcast();$('go').hidden=false});
+ peer.on('connection',c=>{
+  c.on('data',d=>{
+   if(d.t==='join'){const s=L.type.indexOf('empty');if(G||s<0){c.send({t:'full'});return}
+    L.type[s]='human';L.names[s]=d.name;conns[s]=c;c._s=s;c.send({t:'seat',seat:s});lobbyBroadcast()}
+   else act(c._s,d)});
+  c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;
+   if(G){G.type[s]='bot';G.names[s]+=' (bot)';sendAll();botTick()}else{L.type[s]='empty';L.names[s]='';lobbyBroadcast()}});
+ });
+};
+$('go').onclick=()=>{newGame();sendAll();botTick()};
+$('jn').onclick=()=>{
+ if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi.';return}
+ const c=$('cd').value.trim().toUpperCase();if(c.length<4){$('lt').textContent='4 harfli oda kodunu yaz.';return}
+ $('lt').textContent='Bağlanıyor...';peer=new Peer();
+ peer.on('error',e=>$('lt').textContent='Bağlantı hatası: '+e.type);
+ peer.on('open',()=>{conn=peer.connect('okey3d-'+c,{reliable:true});
+  conn.on('open',()=>conn.send({t:'join',name:nm()}));
+  conn.on('data',d=>{
+   if(d.t==='st')apply(d);
+   else if(d.t==='lobby')$('lt').textContent=d.txt+'\n\nOda sahibinin başlatması bekleniyor...';
+   else if(d.t==='full')$('lt').textContent='Oda dolu ya da oyun başlamış.';
+   else if(d.t==='seat')me=d.seat});
+  conn.on('close',()=>msg('Oda ile bağlantı koptu.'))});
+};
 </script>
 </body>
 </html>
