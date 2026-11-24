@@ -42,7 +42,7 @@ button:disabled{opacity:.35;cursor:default}
 <div id="avatarPreview" aria-label="Karakter önizlemesi"></div>
 <div class="look">
 <div class="lookRow">Karakter <select id="genderStyle"><option value="male">Erkek</option><option value="female">Kadın</option></select>　Saç <select id="hairStyle"><option value="classic">Kısa</option><option value="spiky">Hacimli</option><option value="side">Yana taralı</option><option value="long">Uzun düz</option><option value="bob">Küt</option><option value="pony">At kuyruğu</option><option value="braid">Örgülü</option><option value="curly">Kıvırcık</option><option value="pixie">Kısa katlı</option><option value="waves">Dalgalı uzun</option><option value="bun">Topuz</option><option value="afro">Kabarık bukle</option></select></div>
-<div class="lookRow">Üst kıyafet <select id="shirtStyle"><option value="normal">Kısa kollu</option><option value="hoodie">Uzun kollu kapüşonlu</option><option value="jacket">Ceket</option></select> <span id="hoodControl" hidden>Kapüşon <select id="hoodStyle"><option value="closed">Kapalı</option><option value="open">Açık</option></select></span>　Pantolon <select id="pantsStyle"><option value="normal">Normal</option><option value="jeans">Kot</option><option value="shorts">Şort</option></select></div>
+<div class="lookRow">Üst kıyafet <select id="shirtStyle"><option value="normal">Normal</option><option value="hoodie">Kapüşonlu</option><option value="jacket">Ceket</option></select>　Pantolon <select id="pantsStyle"><option value="normal">Normal</option><option value="jeans">Kot</option><option value="shorts">Şort</option></select></div>
 <div class="lookRow">Üst renk <input type="color" id="cs" value="#2585dc"> Pantolon rengi <input type="color" id="cp" value="#252b35"></div><div class="lookRow">Saç rengi <input type="color" id="ch" value="#2b1b12"> Ten <input type="color" id="ck" value="#ffc38e"></div></div>
 <button id="solo">Tek başına (botlarla)</button>
 <button id="mk">Oda kur</button><br>
@@ -229,51 +229,47 @@ function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
  for(const x of[-.14,.14])add(p,new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),blk),x,2.13,.36);
  add(p,new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.07),skin),0,2.04,.41);
  add(p,new THREE.Mesh(new THREE.BoxGeometry(.15,.035,.04),lip),0,1.93,.37);
- // Üst kıyafet ekleri
+ // Üst kıyafet ekleri: kapüşonlu ve ceket için ayrı, görünür ayrıntılar.
  const clothes=new THREE.Group();p.add(clothes);
- const hood=add(clothes,new THREE.Mesh(new THREE.SphereGeometry(.31,16,12),sh),0,2.02,-.27);
- hood.scale.set(1.02,1.12,.82);hood.visible=false;
- const pocket=add(clothes,new THREE.Mesh(new THREE.BoxGeometry(.35,.18,.035),sh),0,1.05,.37);pocket.visible=false;
+ const detailMat=new THREE.MeshStandardMaterial({color:0xd8e3eb,roughness:.72});
+ const darkTrim=new THREE.MeshStandardMaterial({color:0x263544,roughness:.82});
+ const hood=new THREE.Group();clothes.add(hood);
+ const hoodShell=add(hood,new THREE.Mesh(new THREE.SphereGeometry(.30,16,12),sh),0,1.78,-.25);
+ hoodShell.scale.set(1,.94,.72);
+ const hoodOpening=add(hood,new THREE.Mesh(new THREE.TorusGeometry(.205,.035,8,24),darkTrim),0,1.79,.015);
+ hoodOpening.scale.set(1,1.12,.72);
+ const hoodInner=add(hood,new THREE.Mesh(new THREE.SphereGeometry(.205,14,10),darkTrim),0,1.78,-.04);
+ hoodInner.scale.set(1,.95,.45);hoodInner.visible=false;
+ const pocket=add(clothes,new THREE.Mesh(new THREE.BoxGeometry(.43,.22,.045),sh),0,1.04,.385);
+ const pocketSeam=add(clothes,new THREE.Mesh(new THREE.BoxGeometry(.45,.025,.018),darkTrim),0,.925,.412);
+ const hoodieStrings=[];
+ for(const x of[-.075,.075]){
+  const cord=add(clothes,new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.28,8),detailMat),x,1.48,.405);
+  const tip=add(clothes,new THREE.Mesh(new THREE.SphereGeometry(.022,8,8),detailMat),x,1.335,.405);
+  hoodieStrings.push(cord,tip);
+ }
+ hood.visible=false;pocket.visible=false;pocketSeam.visible=false;
+ hoodieStrings.forEach(x=>x.visible=false);
  const jacket=new THREE.Group();clothes.add(jacket);
- const jacketTrim=new THREE.MeshStandardMaterial({color:0x263746,roughness:.72});
- const jacketMetal=new THREE.MeshStandardMaterial({color:0xd8dce2,metalness:.65,roughness:.3});
- // Ön paneller: ceketin gövde üzerindeki belirgin iki kanadı.
- for(const x of[-.135,.135]){
-  const panel=new THREE.Mesh(new THREE.BoxGeometry(.145,.76,.055),sh);
-  panel.position.set(x,1.25,.365);panel.castShadow=true;jacket.add(panel);
-  const seam=new THREE.Mesh(new THREE.BoxGeometry(.012,.66,.012),jacketTrim);
-  seam.position.set(x+(x<0?-.061:.061),1.25,.398);jacket.add(seam);
+ for(const x of[-.13,.13]){
+  const panel=new THREE.Mesh(new THREE.BoxGeometry(.13,.72,.045),sh);
+  panel.position.set(x,1.25,.37);panel.castShadow=true;jacket.add(panel);
  }
- // Omuz dikişleri ve katlı yaka parçaları.
- for(const x of[-.29,.29]){
-  const shoulder=new THREE.Mesh(new THREE.BoxGeometry(.19,.055,.045),sh);
-  shoulder.position.set(x,1.59,.12);shoulder.rotation.z=x<0?-.12:.12;jacket.add(shoulder);
- }
+ const zip=new THREE.Mesh(new THREE.BoxGeometry(.025,.68,.03),detailMat);
+ zip.position.set(0,1.25,.405);jacket.add(zip);
+ // Ceket yakaları, düğmeleri ve iki kapaklı cep.
  for(const side of[-1,1]){
-  const lapel=new THREE.Mesh(new THREE.BoxGeometry(.115,.43,.055),jacketTrim);
-  lapel.position.set(side*.105,1.48,.414);lapel.rotation.z=side*.28;jacket.add(lapel);
-  const collar=new THREE.Mesh(new THREE.BoxGeometry(.13,.16,.055),sh);
-  collar.position.set(side*.075,1.68,.365);collar.rotation.z=side*-.28;jacket.add(collar);
-  // Göğüs cebi ve alt cep kapakları.
-  const chestPocket=new THREE.Mesh(new THREE.BoxGeometry(.105,.12,.025),jacketTrim);
-  chestPocket.position.set(side*.225,1.43,.414);jacket.add(chestPocket);
-  const chestFlap=new THREE.Mesh(new THREE.BoxGeometry(.12,.035,.03),sh);
-  chestFlap.position.set(side*.225,1.49,.43);jacket.add(chestFlap);
-  const lowerPocket=new THREE.Mesh(new THREE.BoxGeometry(.13,.105,.025),jacketTrim);
-  lowerPocket.position.set(side*.205,1.08,.414);jacket.add(lowerPocket);
-  const lowerFlap=new THREE.Mesh(new THREE.BoxGeometry(.145,.035,.03),sh);
-  lowerFlap.position.set(side*.205,1.14,.43);jacket.add(lowerFlap);
-  // Kol uçlarında ince manşet şeridi.
-  const cuff=new THREE.Mesh(new THREE.BoxGeometry(.215,.075,.22),jacketTrim);
-  cuff.position.set(side*.45,.99,0);jacket.add(cuff);
+  const lapel=new THREE.Mesh(new THREE.BoxGeometry(.12,.27,.055),sh);
+  lapel.position.set(side*.085,1.57,.415);lapel.rotation.z=side*-.22;lapel.castShadow=true;jacket.add(lapel);
+  const seam=new THREE.Mesh(new THREE.BoxGeometry(.018,.56,.018),detailMat);
+  seam.position.set(side*.19,1.27,.405);jacket.add(seam);
+  const flap=new THREE.Mesh(new THREE.BoxGeometry(.17,.07,.035),sh);
+  flap.position.set(side*.14,1.02,.425);jacket.add(flap);
+  const button=new THREE.Mesh(new THREE.SphereGeometry(.025,8,8),detailMat);
+  button.position.set(side*.045,1.42,.435);jacket.add(button);
  }
- // Fermuar hattı ve küçük metal çıtçıtlar.
- const zip=new THREE.Mesh(new THREE.BoxGeometry(.022,.68,.025),jacketMetal);
- zip.position.set(0,1.25,.425);jacket.add(zip);
- for(let y of[1.18,1.32,1.46]){
-  const button=new THREE.Mesh(new THREE.SphereGeometry(.025,8,8),jacketMetal);
-  button.position.set(.045,y,.445);jacket.add(button);
- }
+ const jacketBottom=new THREE.Mesh(new THREE.BoxGeometry(.29,.035,.025),detailMat);
+ jacketBottom.position.set(0,.89,.405);jacket.add(jacketBottom);
  jacket.visible=false;
  const l=[],a=[];
  for(const x of[-.22,.22]){
@@ -282,14 +278,19 @@ function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
   const shin=add(g,new THREE.Mesh(new THREE.BoxGeometry(.16,.42,.16),skin),0,-.61,0);shin.visible=false;
   p.add(g);l.push(g);
  }
- for(const x of[-.45,.45]){
-  const g=new THREE.Group();g.position.set(x,1.75,0);
+ const sleeves=[];
+ for(const x of[-.41,.41]){
+  // Kolun ten rengi kısmı altta kalır; kıyafet kolu omuz hizasından başlar.
+  const g=new THREE.Group();g.position.set(x,1.8,0);
   add(g,new THREE.Mesh(new THREE.BoxGeometry(.2,.85,.2),skin),0,-.42,0);
-  const shortSleeve=add(g,new THREE.Mesh(new THREE.BoxGeometry(.235,.34,.235),sh),0,-.14,0);
-  const longSleeve=add(g,new THREE.Mesh(new THREE.BoxGeometry(.235,.78,.235),sh),0,-.39,0);
-  p.add(g);a.push({group:g,shortSleeve,longSleeve});
+  const sleeve=add(g,new THREE.Mesh(new THREE.BoxGeometry(.29,.78,.29),sh),0,-.39,0);
+  const cuff=add(g,new THREE.Mesh(new THREE.BoxGeometry(.30,.13,.30),darkTrim),0,-.78,0);
+  const sleeveSeam=add(g,new THREE.Mesh(new THREE.BoxGeometry(.014,.58,.014),detailMat),x<0?-.13:.13,-.39,.15);
+  sleeve.visible=false;cuff.visible=false;sleeveSeam.visible=false;
+  sleeves.push({sleeve,cuff,sleeveSeam});
+  p.add(g);a.push(g);
  }
- p.userData={l,a,m:{sh,hm,skin,pants},styles:{hair,spikes,fringe,sideHair,longHair,bobHair,ponyHair,braidHair,curlyHair,pixieHair,wavesHair,bunHair,afroHair,femaleHair,hood,pocket,jacket}};
+ p.userData={l,a,m:{sh,hm,skin,pants},styles:{hair,spikes,fringe,sideHair,longHair,bobHair,ponyHair,braidHair,curlyHair,pixieHair,wavesHair,bunHair,afroHair,femaleHair,hood,pocket,pocketSeam,hoodieStrings,jacket,sleeves}};
  targetScene.add(p);return p;
 }
 function setLook(p,l){
@@ -303,10 +304,27 @@ function setLook(p,l){
  s.hair.visible=hs!=='bald';s.fringe.visible=hs==='classic';
  s.femaleHair.visible=l.g==='female';
  const cs=l.cs||'normal';
- s.hood.visible=cs==='hoodie';
- if(cs==='hoodie'){const isOpen=(l.hd||'closed')==='open';s.hood.position.set(0,isOpen?1.91:2.08,-.29);s.hood.scale.set(isOpen?1.08:.98,isOpen?.92:1.18,isOpen?.9:.78);}
- s.pocket.visible=cs==='hoodie';s.jacket.visible=cs==='jacket';
- for(const arm of u.a){arm.shortSleeve.visible=cs==='normal';arm.longSleeve.visible=cs==='hoodie'||cs==='jacket';}
+ s.hood.visible=cs==='hoodie';s.hood.children[2].visible=cs==='hoodie';
+ s.pocket.visible=cs==='hoodie';s.pocketSeam.visible=cs==='hoodie';
+ s.hoodieStrings.forEach(x=>x.visible=cs==='hoodie');s.jacket.visible=cs==='jacket';
+ for(const item of s.sleeves){
+  // Normal üst kısa kollu: omuz kapalı, kolun yalnızca üst dörtte birlik kısmı kumaşla kaplı.
+  // Kapüşonlu ve ceket uzun kollu; kol kumaşı omuzdan bileğe kadar devam eder.
+  const longSleeve=cs==='hoodie'||cs==='jacket';
+  item.sleeve.visible=true;
+  // Uzun kollarda manşet bileği tamamen kapatmasın; elin başladığı yerde az miktar ten görünsün.
+  item.sleeve.scale.y=longSleeve?.90:.40;
+  item.sleeve.position.y=longSleeve?-.35:-.155;
+  item.cuff.visible=longSleeve;
+  item.cuff.position.y=longSleeve?-.72:-.78;
+  item.sleeveSeam.visible=cs==='jacket';
+ }
+ // Dikiş ve kapüşon detayları seçilen üst rengini takip etsin.
+ const base=new THREE.Color(l.s||'#2585dc');
+ const trim=base.clone().multiplyScalar(.58);
+ s.pocketSeam.material.color.copy(trim);
+ s.hood.children[1].material.color.copy(trim);
+ s.sleeves.forEach(item=>item.cuff.material.color.copy(trim));
  const ps=l.ps||'normal';
  m.pants.color.set(l.pc||'#252b35');
  for(const g of u.l){
@@ -328,14 +346,10 @@ const player=person(0x2585dc);player.position.set(0,0,6);
 const previewScene=new THREE.Scene();previewScene.background=new THREE.Color(0x1c2b3b);
 previewScene.add(new THREE.HemisphereLight(0xffffff,0x405060,1.8));
 const previewLight=new THREE.DirectionalLight(0xffffff,2.2);previewLight.position.set(2,4,5);previewScene.add(previewLight);
-const previewCamera=new THREE.PerspectiveCamera(32,220/175,.1,50);
-const previewRenderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});previewRenderer.setPixelRatio(Math.min(devicePixelRatio,1.5));previewRenderer.setSize(440,350,false);previewRenderer.domElement.style.cssText='display:block;width:100%;height:100%;';$('avatarPreview').appendChild(previewRenderer.domElement);
-const previewAvatar=person(0x2585dc,0x2b1b12,0xffc38e,previewScene);previewAvatar.position.set(0,0,0);previewAvatar.visible=true;
-// Önizleme kamerasını modelin gerçek sınırlarına göre otomatik kadrajla.
-const previewBounds=new THREE.Box3().setFromObject(previewAvatar),previewCenter=previewBounds.getCenter(new THREE.Vector3()),previewSize=previewBounds.getSize(new THREE.Vector3());
-const previewDistance=Math.max(previewSize.y/(2*Math.tan(THREE.MathUtils.degToRad(previewCamera.fov/2))),previewSize.x/(2*Math.tan(THREE.MathUtils.degToRad(previewCamera.fov/2))*(220/175)))*1.22;
-previewCamera.position.set(previewCenter.x,previewCenter.y,previewCenter.z+previewDistance);previewCamera.lookAt(previewCenter);previewCamera.updateProjectionMatrix();
-function refreshPreview(){const l=myLook();setLook(previewAvatar,l);previewAvatar.visible=true;previewRenderer.render(previewScene,previewCamera)}
+const previewCamera=new THREE.PerspectiveCamera(35,220/175,.1,30);previewCamera.position.set(0,2.15,5.9);previewCamera.lookAt(0,1.25,0);
+const previewRenderer=new THREE.WebGLRenderer({antialias:true,alpha:false});previewRenderer.setPixelRatio(Math.min(devicePixelRatio,1.5));previewRenderer.setSize(440,350,false);previewRenderer.domElement.style.width='100%';previewRenderer.domElement.style.height='100%';$('avatarPreview').appendChild(previewRenderer.domElement);
+const previewAvatar=person(0x2585dc,0x2b1b12,0xffc38e,previewScene);previewAvatar.position.set(0,0,0);
+function refreshPreview(){const l=myLook();setLook(previewAvatar,l);previewRenderer.render(previewScene,previewCamera)}
 
 const hairC=[0x2b1b12,0xc8a24a,0x111111,0x6b3a1e,0x8a4b2a,0x1a1a1a,0xd9b36a,0x3a2a1a,0x5a5a5a,0x2b1b12];
 const avCol=[0xd9534f,0x5cb85c,0xf0ad4e,0x9b59b6,0x17a2b8,0xe83e8c,0x6c757d,0x20c997,0xfd7e14,0x6610f2];
@@ -396,10 +410,27 @@ let G=null,L={type:['human','empty','empty','empty'],names:['','','',''],look:[n
 let me=-1,view=null,hand=[],chosen=new Set(),pend=[],started=false,okey=null;
 const DEF=[{s:'#d9534f',h:'#2b1b12',k:'#ffc38e'},{s:'#5cb85c',h:'#c8a24a',k:'#e8b48a'},{s:'#f0ad4e',h:'#111111',k:'#c68a5e'},{s:'#9b59b6',h:'#6b3a1e',k:'#ffd5b0'}];
 const cl=v=>/^#[0-9a-f]{6}$/i.test(v)?v:'#888888';
-const myLook=()=>({s:$('cs').value,h:$('ch').value,k:$('ck').value,pc:$('cp').value,hs:$('hairStyle').value,cs:$('shirtStyle').value,hd:$('hoodStyle').value,ps:$('pantsStyle').value,g:$('genderStyle').value});
-function updateHoodControl(){ $('hoodControl').hidden=$('shirtStyle').value!=='hoodie'; }
-for(const id of ['cs','cp','ch','ck','hairStyle','shirtStyle','hoodStyle','pantsStyle','genderStyle']){ $(id).addEventListener('input',refreshPreview); $(id).addEventListener('change',()=>{if(id==='shirtStyle')updateHoodControl();refreshPreview()}); }
-updateHoodControl();refreshPreview();
+const myLook=()=>({s:$('cs').value,h:$('ch').value,k:$('ck').value,pc:$('cp').value,hs:$('hairStyle').value,cs:$('shirtStyle').value,ps:$('pantsStyle').value,g:$('genderStyle').value});
+// Oyuncunun adı ve avatarı aynı tarayıcıda sonraki ziyaretler için saklanır.
+const PROFILE_KEY='okey3dCafeProfile_v1';
+function saveProfile(){
+ try{localStorage.setItem(PROFILE_KEY,JSON.stringify({name:$('nm').value,look:myLook()}))}catch(e){}
+}
+try{
+ const saved=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+ if(saved&&typeof saved==='object'){
+  if(typeof saved.name==='string')$('nm').value=saved.name.slice(0,12);
+  if(saved.look&&typeof saved.look==='object'){
+   for(const [id,key] of [['cs','s'],['cp','pc'],['ch','h'],['ck','k']])if(/^#[0-9a-f]{6}$/i.test(saved.look[key]||''))$(id).value=saved.look[key];
+   for(const [id,key] of [['hairStyle','hs'],['shirtStyle','cs'],['pantsStyle','ps'],['genderStyle','g']]){
+    const value=saved.look[key];if(value&&Array.from($(id).options).some(o=>o.value===value))$(id).value=value;
+   }
+  }
+ }
+}catch(e){}
+for(const id of ['cs','cp','ch','ck','hairStyle','shirtStyle','pantsStyle','genderStyle'])$(id).addEventListener('input',()=>{refreshPreview();saveProfile()});
+$('nm').addEventListener('input',saveProfile);
+refreshPreview();saveProfile();
 const isW=t=>t.n>0&&okey&&t.n===okey.n&&t.c===okey.c;
 const eff=t=>t.n===0?{n:okey.n,c:okey.c}:t;
 function grp(ts){
@@ -800,7 +831,7 @@ function animate(){
  updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);if($('lobby').style.display!=='none')previewRenderer.render(previewScene,previewCamera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);const r=$('avatarPreview').getBoundingClientRect();if(r.width&&r.height){previewCamera.aspect=r.width/r.height;previewCamera.updateProjectionMatrix();previewRenderer.setSize(Math.round(r.width*2),Math.round(r.height*2),false);refreshPreview()}});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
 /* ---------- LOBİ ve ÇEVRİMİÇİ ---------- */
 const nm=()=>($('nm').value.trim()||'Oyuncu');
@@ -829,7 +860,7 @@ $('mk').onclick=()=>{
  peer.on('connection',c=>{
   c.on('data',d=>{
    if(d.t==='join'){const s=L.type.indexOf('empty');if(G||s<0){c.send({t:'full'});return}
-    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',hd:d.look.hd==='open'?'open':'closed',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode});lobbyBroadcast()}
+    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode});lobbyBroadcast()}
    else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));onPos(d)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
   c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;
    if(G){if(G.mode==='rou'&&!botsOn)rouLeave(s);else{G.type[s]='bot';L.type[s]='empty';G.names[s]+=' (bot)';sendAll();botTick()}}else{L.type[s]='empty';L.names[s]='';lobbyBroadcast()}});
