@@ -114,10 +114,17 @@ const discMesh=[0,1,2,3].map(i=>{const a=A(i),cm=()=>new THREE.MeshStandardMater
  {const w=L2W(i,1.5,1.4);m.position.set(w[0],2.0,w[1])}m.rotation.y=a;m.castShadow=true;m.visible=false;scene.add(m);return m});
 
 function makeTea(){const g=new THREE.Group();
-g.add(new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.02,16),new THREE.MeshStandardMaterial({color:0xffffff})));
-const gl=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.26,12),new THREE.MeshStandardMaterial({color:0xe6eeee,transparent:true,opacity:.55}));gl.position.y=.14;g.add(gl);
-const t=new THREE.Mesh(new THREE.CylinderGeometry(.115,.085,.18,12),new THREE.MeshStandardMaterial({color:0xc0451a}));t.position.y=.12;g.add(t);g.userData.liq=t;
- const h=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.5,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));h.position.y=.2;g.add(h);
+// İnce belli geleneksel Türk çay bardağı
+const glassProfile=[[.075,0],[.09,.025],[.12,.08],[.14,.15],[.13,.21],[.105,.27],[.095,.32],[.105,.36],[.12,.38]].map(p=>new THREE.Vector2(...p));
+const glassMat=new THREE.MeshPhysicalMaterial({color:0xeaf6f5,transparent:true,opacity:.34,roughness:.08,metalness:0,clearcoat:1,clearcoatRoughness:.04,side:THREE.DoubleSide});
+const glass=new THREE.Mesh(new THREE.LatheGeometry(glassProfile,32),glassMat);g.add(glass);
+// Bardağın içinde görünen amber renkli çay
+const teaProfile=[[0,.018],[.075,.025],[.105,.08],[.12,.14],[.105,.19],[.085,.215],[0,.215]].map(p=>new THREE.Vector2(...p));
+const t=new THREE.Mesh(new THREE.LatheGeometry(teaProfile,32),new THREE.MeshStandardMaterial({color:0xc94b16,roughness:.22,metalness:0}));g.add(t);g.userData.liq=t;
+// İnce cam ağız kenarı ve taban tabağı
+const rim=new THREE.Mesh(new THREE.TorusGeometry(.116,.008,8,32),new THREE.MeshPhysicalMaterial({color:0xf4ffff,transparent:true,opacity:.55,roughness:.08}));rim.rotation.x=Math.PI/2;rim.position.y=.375;g.add(rim);
+const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.02,24),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.35}));saucer.position.y=-.012;g.add(saucer);
+const h=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.5,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));h.position.y=.2;g.add(h);
  g.scale.setScalar(.6);return g}
 let cTex=null;
 function makeCola(){const g=new THREE.Group();
