@@ -645,20 +645,61 @@ const pcG=new THREE.Group(),hlG=new THREE.Group(),sqMeshes=[],sqPos=q=>[((q&7)-3
  const dk=new THREE.MeshStandardMaterial({color:0x6b4a2f}),lt=new THREE.MeshStandardMaterial({color:0xe3cfa5});
  for(let q=0;q<64;q++){const m=new THREE.Mesh(new THREE.BoxGeometry(.4,.02,.4),((q>>3)+(q&7))%2===0?dk:lt),c=sqPos(q);m.position.set(c[0],2.04,c[1]);m.userData.sq=q;m.receiveShadow=true;chessG.add(m);sqMeshes.push(m)}
  chessG.add(pcG,hlG)}
-const prof={P:[[0,0],[.13,0],[.13,.03],[.07,.08],[.06,.17],[.1,.19],[.1,.23],[.07,.26],[0,.28]],
- R:[[0,0],[.15,0],[.15,.04],[.1,.08],[.1,.26],[.14,.29],[.14,.37],[.1,.37],[.1,.34],[0,.34]],
- B:[[0,0],[.15,0],[.15,.04],[.08,.1],[.06,.24],[.11,.28],[.07,.4],[0,.43]],
- Q:[[0,0],[.16,0],[.16,.04],[.09,.1],[.07,.3],[.13,.36],[.13,.42],[.06,.44],[.06,.5],[0,.52]],
- K:[[0,0],[.16,0],[.16,.04],[.1,.1],[.08,.3],[.13,.36],[.13,.43],[.07,.45],[0,.45]],
- N:[[0,0],[.15,0],[.15,.04],[.1,.1],[0,.1]]},pg={};
-for(const k in prof)pg[k]=new THREE.LatheGeometry(prof[k].map(q=>new THREE.Vector2(q[0],q[1])),16);
-const pmW=new THREE.MeshStandardMaterial({color:0xf2ead8,roughness:.4}),pmB=new THREE.MeshStandardMaterial({color:0x2a2420,roughness:.35});
-function mkPiece(ch){const u=ch.toUpperCase(),w=ch===u,m=w?pmW:pmB,g=new THREE.Group(),bx=(a,b,c,x,y,z,rx)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(a,b,c),m);o.position.set(x,y,z);if(rx)o.rotation.x=rx;g.add(o)},sp=(r,y)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),m);o.position.y=y;g.add(o)};
- g.add(new THREE.Mesh(pg[u],m));
- if(u==='K'){bx(.04,.14,.04,0,.52);bx(.11,.04,.04,0,.53)}
- if(u==='Q')sp(.05,.55);if(u==='B')sp(.04,.45);if(u==='P')sp(.075,.3);
- if(u==='N'){bx(.13,.26,.17,0,.22,0,.25);bx(.11,.12,.22,0,.38,.07,-.2);g.rotation.y=w?0:Math.PI}
- g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
+const pmW=new THREE.MeshStandardMaterial({color:0xf4ead5,roughness:.3,metalness:.08}),pmB=new THREE.MeshStandardMaterial({color:0x24252b,roughness:.27,metalness:.18});
+const goldW=new THREE.MeshStandardMaterial({color:0xc69a4a,metalness:.72,roughness:.26}),goldB=new THREE.MeshStandardMaterial({color:0x98713a,metalness:.72,roughness:.28});
+function mkPiece(ch){
+ const u=ch.toUpperCase(),w=ch===u,m=w?pmW:pmB,accent=w?goldW:goldB,g=new THREE.Group();
+ const mesh=(geo,mat=m,x=0,y=0,z=0)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;g.add(o);return o};
+ const lathe=(pts,mat=m)=>mesh(new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),32),mat);
+ const cyl=(r1,r2,h,y,mat=m,n=32)=>mesh(new THREE.CylinderGeometry(r1,r2,h,n),mat,0,y,0);
+ const sphere=(r,y,mat=m,x=0,z=0)=>mesh(new THREE.SphereGeometry(r,20,14),mat,x,y,z);
+ // Ortak, katmanlı ve metal şeritli sağlam kaide
+ lathe([[0,0],[.105,0],[.15,.018],[.16,.045],[.145,.065],[.115,.085],[.105,.11],[.09,.13],[0,.13]]);
+ cyl(.132,.132,.018,.055,accent);
+ if(u==='P'){
+  lathe([[0,.12],[.075,.12],[.09,.15],[.07,.19],[.052,.23],[.045,.27],[.055,.29],[.045,.31],[0,.31]]);
+  sphere(.078,.385);
+ } else if(u==='R'){
+  lathe([[0,.12],[.085,.12],[.105,.16],[.085,.21],[.075,.28],[.11,.31],[.12,.34],[.105,.36],[0,.36]]);
+  cyl(.115,.115,.055,.385,accent);
+  // Kale burçları: üstteki dört belirgin mazgal
+  cyl(.112,.112,.045,.425,m);
+  for(let a=0;a<4;a++){const t=a*Math.PI/2;mesh(new THREE.BoxGeometry(.075,.075,.075),m,Math.sin(t)*.075,.475,Math.cos(t)*.075)}
+ } else if(u==='B'){
+  lathe([[0,.12],[.085,.12],[.105,.16],[.078,.22],[.064,.31],[.045,.39],[.025,.45],[0,.49]]);
+  sphere(.035,.49,accent);
+  const slit=mesh(new THREE.BoxGeometry(.018,.13,.012),accent,0,.345,.055);slit.rotation.z=-.35;
+  sphere(.026,.525,m);
+ } else if(u==='Q'){
+  lathe([[0,.12],[.09,.12],[.11,.16],[.085,.22],[.07,.32],[.09,.37],[.115,.4],[.1,.43],[0,.43]]);
+  cyl(.105,.105,.025,.445,accent);
+  // Beş uçlu taç
+  for(let a=0;a<5;a++){const t=a*Math.PI*2/5;const x=Math.sin(t)*.085,z=Math.cos(t)*.085;mesh(new THREE.ConeGeometry(.025,.105,12),accent,x,.51,z);sphere(.021,.57,accent,x,.0+z)}
+  sphere(.045,.47,accent);
+ } else if(u==='K'){
+  lathe([[0,.12],[.09,.12],[.11,.16],[.085,.22],[.07,.33],[.09,.38],[.12,.41],[.1,.44],[0,.44]]);
+  cyl(.105,.105,.025,.455,accent);
+  // Kral tacı ve net haç
+  cyl(.035,.035,.16,.54,m);cyl(.12,.12,.035,.55,accent);
+  mesh(new THREE.BoxGeometry(.045,.15,.045),accent,0,.64,0);
+  mesh(new THREE.BoxGeometry(.14,.045,.045),accent,0,.665,0);
+ } else if(u==='N'){
+  lathe([[0,.12],[.09,.12],[.11,.16],[.085,.22],[.07,.29],[.095,.32],[.09,.35],[0,.35]]);
+  // At başı profili: alın, burun, kulak ve yele tek silüette
+  const sh=new THREE.Shape();
+  sh.moveTo(-.105,.22);sh.quadraticCurveTo(-.13,.34,-.065,.43);sh.lineTo(-.085,.56);sh.lineTo(-.015,.51);
+  sh.quadraticCurveTo(.045,.55,.105,.49);sh.quadraticCurveTo(.16,.45,.13,.39);
+  sh.lineTo(.075,.36);sh.lineTo(.115,.30);sh.quadraticCurveTo(.04,.27,-.035,.29);sh.closePath();
+  const geo=new THREE.ExtrudeGeometry(sh,{depth:.105,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.012,bevelThickness:.012});
+  geo.translate(0,0,-.0525);const head=mesh(geo,m,0,0,0);head.rotation.y=w?0:Math.PI;
+  sphere(.014,.445,accent,.045,.055);
+  // Yele çizgileri
+  for(let i=0;i<3;i++){const line=mesh(new THREE.BoxGeometry(.018,.075,.012),accent,-.075+i*.025,.37-i*.018,-.06);line.rotation.z=-.45}
+ }
+ // Her taşın tabanında ince metal halka ve yumuşak gölge
+ const ring=mesh(new THREE.TorusGeometry(.112,.009,8,32),accent,0,.105,0);ring.rotation.x=Math.PI/2;
+ return g
+}
 let CH=null,selSq=-1;
 function buildChess(){
  while(pcG.children.length)pcG.remove(pcG.children[0]);while(hlG.children.length)hlG.remove(hlG.children[0]);
