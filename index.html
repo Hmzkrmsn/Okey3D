@@ -70,6 +70,7 @@ button:disabled{opacity:.35;cursor:default}
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 const $=id=>document.getElementById(id);
 const msg=t=>$('status').textContent=t;
+let mode='okey',botsOn=true;const tbl=[];
 const TC=['#d83b36','#2679c9','#259b5a','#292929'];
 const CN=['kırmızı','mavi','yeşil','siyah'];
 
@@ -89,7 +90,6 @@ cube(1,9,25,0xcdbb9f,-12,4.5,0);cube(1,9,25,0xcdbb9f,12,4.5,0);
 for(const x of[-4,4]){const w=cube(5,3,.15,0x3b6f94,x,4,-11.4);w.material.emissive.set(0x1c4a6e)}
 tbl.push(cube(5,.3,4,0x2f6b45,0,1.8,0));
 for(const x of[-2,2])for(const z of[-1.5,1.5])tbl.push(cube(.25,1.8,.25,0x493020,x,.9,z));
-let mode='okey',botsOn=true;const tbl=[];
 const A=i=>i*2*Math.PI/(mode==='rou'?10:4);
 const L2W=(s,x,z)=>{const a=A(s);return [x*Math.cos(a)+z*Math.sin(a),-x*Math.sin(a)+z*Math.cos(a)]};
 const seatPos=i=>mode==='rou'?{x:Math.sin(A(i))*3.7,z:Math.cos(A(i))*3.7}:{x:Math.sin(A(i))*3.5,z:Math.cos(A(i))*3};
@@ -408,7 +408,7 @@ function rouBotMove(){const s=G.turn,liveLeft=G.live0-G.fired.filter(Boolean).le
  if(p===0||(p<.5&&Math.random()<.85))return s;
  foes.sort((a,b)=>G.hp[a]-G.hp[b]);return Math.random()<.6?foes[0]:foes[Math.random()*foes.length|0]}
 function rouBotTick(){if(!G||G.mode!=='rou'||G.over||G.type[G.turn]!=='bot')return;
- setTimeout(()=>{if(!G||G.over||G.type[G.turn]!=='bot')return;rouAct(G.turn,{t:'shoot',target:rouBotMove()})},1600)}
+ setTimeout(()=>{if(!G||G.mode!=='rou'||G.over||G.type[G.turn]!=='bot')return;rouAct(G.turn,{t:'shoot',target:rouBotMove()})},1600)}
 function rouLeave(s){G.hp[s]=0;G.type[s]='none';L.type[s]='empty';const al=rAlive();
  if(al.length<=1){G.over=true;G.res=al.length?G.names[al[0]]+' kazandı! 🏆':'Oyun bitti.'}else if(G.turn===s)G.turn=rNext(s);sendAll();rouBotTick()}
 /*END-ROU*/
