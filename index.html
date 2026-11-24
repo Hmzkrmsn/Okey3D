@@ -495,14 +495,68 @@ const send=m=>isHost?act(0,m):conn&&conn.send(m);
 
 /* ---------- ARAYÜZ ---------- */
 const tl=t=>t.n||'★';
-const wood=new THREE.MeshStandardMaterial({color:0x6b4426}),wood2=new THREE.MeshStandardMaterial({color:0x4a2e18});
+// Hafif damarlı, sıcak ceviz tonlu gerçekçi ahşap dokusu
+const woodCanvas=document.createElement('canvas');woodCanvas.width=512;woodCanvas.height=128;
+const wx=woodCanvas.getContext('2d');
+const wg=wx.createLinearGradient(0,0,0,128);wg.addColorStop(0,'#9a673b');wg.addColorStop(.48,'#bd8954');wg.addColorStop(1,'#80502d');wx.fillStyle=wg;wx.fillRect(0,0,512,128);
+for(let j=0;j<34;j++){const y=(j*37)%128;wx.beginPath();wx.moveTo(0,y);for(let x=0;x<=512;x+=16)wx.lineTo(x,y+Math.sin((x+j*19)*.025)*2.2+Math.sin((x+j)*.071)*1.1);wx.strokeStyle=j%4===0?'rgba(75,39,17,.22)':'rgba(255,218,164,.12)';wx.lineWidth=j%5===0?2:1;wx.stroke()}
+const woodTex=new THREE.CanvasTexture(woodCanvas);woodTex.colorSpace=THREE.SRGBColorSpace;woodTex.wrapS=woodTex.wrapT=THREE.RepeatWrapping;woodTex.repeat.set(2,1);
+const wood=new THREE.MeshStandardMaterial({map:woodTex,color:0xffffff,roughness:.82});
+const wood2=new THREE.MeshStandardMaterial({map:woodTex,color:0x76502f,roughness:.88});
+const darkGroove=new THREE.MeshStandardMaterial({color:0x382519,roughness:.9});
 const racks=[0,1,2,3].map(i=>{const g=new THREE.Group(),a=A(i),d=i%2===0?1.55:2.05;
- g.position.set(Math.sin(a)*d,1.95,Math.cos(a)*d);g.rotation.y=a;g.scale.setScalar(.85);scene.add(g);
- const part=(w,h,dp,x,y,z,m)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,dp),m);b.position.set(x,y,z);b.castShadow=true;g.add(b)};
- part(1.9,.09,.3,0,.045,.13,wood);
- part(1.9,.2,.3,0,.1,-.17,wood);
- part(1.9,.44,.05,0,.22,-.34,wood2);
- part(.07,.44,.72,-.95,.22,-.03,wood2);part(.07,.44,.72,.95,.22,-.03,wood2);
+ g.position.set(Math.sin(a)*d,1.95,Math.cos(a)*d);g.rotation.order='YXZ';g.rotation.y=a;g.rotation.x=-.12;g.scale.setScalar(.85);scene.add(g);
+ const part=(w,h,dp,x,y,z,m)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,dp),m);b.position.set(x,y,z);b.castShadow=true;b.receiveShadow=true;g.add(b)};
+ // Gerçek okey ıstakası formu: tek parça gövde, iki ayrı oluk ve geriye yatan dayanaklar.
+ // Taşların koordinatları/değerleri ve fillRack içindeki per boşlukları aynen korunur.
+ const tileLean=-.35, tileDepth=.065, wallDepth=.035;
+ // Ana taşıyıcı taban ve iki basamağı birbirine bağlayan arka gövde
+ part(2.62,.075,.34,0,.025,0,wood);
+ part(2.52,.105,.105,0,.105,-.105,wood);
+ // Alt sıra oluğu: düz yatak, ön tutucu dudak ve iki yan kılavuz
+ part(2.50,.045,.19,0,.075,.075,wood2);
+ part(2.50,.075,.035,0,.125,.178,wood2);
+ part(.045,.12,.22,-1.245,.105,.075,wood2);
+ part(.045,.12,.22, 1.245,.105,.075,wood2);
+ // Üst sıra ayrı, daha yüksek basamakta; yine kendi yatağı ve ön dudağı var
+ part(2.50,.055,.19,0,.205,-.105,wood2);
+ part(2.50,.075,.035,0,.255,-.002,wood2);
+ part(.045,.13,.22,-1.245,.245,-.105,wood2);
+ part(.045,.13,.22, 1.245,.245,-.105,wood2);
+ // Her iki sıranın arkasında geniş, taşların eğimiyle birebir aynı açıdaki yaslanma paneli
+ const addBackrest=(y,z)=>{
+   const b=new THREE.Mesh(new THREE.BoxGeometry(2.50,.285,wallDepth),wood2);
+   const offset=tileDepth/2+wallDepth/2;
+   b.position.set(0,y+offset*Math.sin(tileLean),z-offset*Math.cos(tileLean));
+   b.rotation.x=tileLean;b.castShadow=true;b.receiveShadow=true;g.add(b);
+   // Dayanağın üst kenarındaki ince ahşap bitiş çıtası da aynı düzlemde
+   const cap=new THREE.Mesh(new THREE.BoxGeometry(2.50,.025,.045),wood);
+   cap.position.set(0,y+.125+offset*Math.sin(tileLean),z-offset*Math.cos(tileLean));
+   cap.rotation.x=tileLean;cap.castShadow=true;cap.receiveShadow=true;g.add(cap);
+ };
+ addBackrest(.17,.082);
+ addBackrest(.335,-.075);
+ // Yan profiller: kullanıcının çizdiği gibi düz taban + arkada dik kenar + eğimli üst kenar.
+ // İki parça da aynı üçgen kesite sahip; yalnızca ıstakanın sağ ve sol dışına yerleştirilir.
+ const addSideRamp=(x)=>{
+   const shape=new THREE.Shape();
+   // Shape'in yatay ekseni dönüşümden sonra dünya Z ekseni olur:
+   // önde (z=+.20) alçak, arkada (z=-.20) yüksek.
+   shape.moveTo(-.20,.045);
+   shape.lineTo(.20,.045);
+   shape.lineTo(.20,.445);
+   shape.closePath();
+   const geo=new THREE.ExtrudeGeometry(shape,{depth:.07,bevelEnabled:false});
+   geo.rotateY(Math.PI/2);
+   const side=new THREE.Mesh(geo,wood);
+   side.position.set(x-.035,.07,0);
+   side.castShadow=true;side.receiveShadow=true;g.add(side);
+ };
+ addSideRamp(-1.285);
+ addSideRamp(1.285);
+ // Eğimli yanların altında kalan boşluğu, yanları aşağı taşımadan ahşap dolgu ile kapat.
+ part(.07,.08,.40,-1.32,.07,0,wood2);
+ part(.07,.08,.40, 1.25,.07,0,wood2);
  g.userData.s=g.children.length;return g});
 const texC={};
 function tex(t,gold){const k=t.n+'_'+t.c+gold;if(texC[k])return texC[k];
@@ -515,13 +569,35 @@ const backMat=new THREE.MeshStandardMaterial({color:0xe0cfa0});
 let myTiles=[];
 function fillRack(i,items){
  const g=racks[i];for(let k=g.children.length-1;k>=g.userData.s;k--)g.remove(g.children[k]);
- items.forEach((t,k)=>{
-  const row=k<11?0:1,c=row?k-11:k,sel=t&&chosen.has(t.id),pd=t&&pend.some(g=>g.includes(t.id));
-  const mats=t?[0,1,2,3,4,5].map(f=>f===4?new THREE.MeshStandardMaterial({map:tex(t,isW(t)||t.n===0),emissive:pd?0x2a6aa8:0x000000}):backMat):backMat;
-  const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.19,.05),mats);
-  m.position.set((c-5)*.16,(row?.3:.19)+(sel?.1:0),(row?-.17:.13)+(sel?.06:0));m.rotation.x=-.65;m.castShadow=true;
-  if(t){m.userData.id=t.id;myTiles.push(m)}
-  g.add(m)});
+ // Taşları iki kata 11'erli yerleştir; her kattaki per grupları arasında ayrı boşluk bırak.
+ const tileW=.16,baseGap=.014,groupGap=.085,rowCount=11;
+ for(let row=0;row<2;row++){
+  const from=row*rowCount,to=Math.min(items.length,from+rowCount),rowItems=items.slice(from,to);
+  if(!rowItems.length)continue;
+  const groupEnds=new Set();
+  if(i===me){
+   for(let k=0;k<rowItems.length;){let size=0;
+    if(k+4<=rowItems.length&&rowItems.slice(k,k+4).every(Boolean)&&grp(rowItems.slice(k,k+4))>0)size=4;
+    else if(k+3<=rowItems.length&&rowItems.slice(k,k+3).every(Boolean)&&grp(rowItems.slice(k,k+3))>0)size=3;
+    else if(k+2<=rowItems.length&&rowItems.slice(k,k+2).every(Boolean)&&isPair(rowItems.slice(k,k+2)))size=2;
+    if(size){groupEnds.add(k+size-1);k+=size}else k++;
+   }
+  }
+  const gaps=[...groupEnds].filter(k=>k<rowItems.length-1).length;
+  const total=rowItems.length*tileW+Math.max(0,rowItems.length-1)*baseGap+gaps*groupGap;
+  let x=-total/2;
+  rowItems.forEach((t,k)=>{
+   const sel=t&&chosen.has(t.id),pd=t&&pend.some(gr=>gr.includes(t.id));
+   const mats=t?[0,1,2,3,4,5].map(f=>f===4?new THREE.MeshStandardMaterial({map:tex(t,isW(t)||t.n===0),emissive:pd?0x2a6aa8:0x000000}):backMat):backMat;
+   const m=new THREE.Mesh(new THREE.BoxGeometry(tileW,.19,.065),mats);
+   // Ön sıra alçak kanala, arka sıra ayrı yüksek basamağa oturur.
+   // Arka taşlar hem daha geride hem daha yukarıda durarak gerçek iki kat görünümü verir.
+   const z=row===0?.082:-.075,y=row===0?.17:.335;
+   m.position.set(x+tileW/2,y+(sel?.1:0),z+(sel?.035:0));m.rotation.x=-.35;m.castShadow=true;
+   if(t){m.userData.id=t.id;myTiles.push(m)}
+   g.add(m);x+=tileW+baseGap+(groupEnds.has(k)?groupGap:0);
+  });
+ }
 }
 // ortadaki deste ve gösterge
 const cen=new THREE.Group();cen.position.y=1.95;scene.add(cen);
@@ -542,11 +618,11 @@ function buildCenter(st){
 const meldG=new THREE.Group();scene.add(meldG);let meldTiles=[];const mgeo=new THREE.BoxGeometry(.15,.025,.21);
 function buildMelds(st){
  while(meldG.children.length)meldG.remove(meldG.children[0]);meldTiles=[];
- for(let i=0;i<4;i++){let x=-1,r=0;(st.melds[i]||[]).forEach((g,mi)=>{
-  if(x+g.length*.16>1.05&&x>-1){x=-1;r++}
-  g.forEach(t=>{const w=L2W(i,x+.08,.95-r*.3);
+ for(let i=0;i<4;i++){let x=-1.35,r=0;(st.melds[i]||[]).forEach((g,mi)=>{
+  if(x+g.length*.17>1.35&&x>-1.35){x=-1.35;r++}
+  g.forEach(t=>{const w=L2W(i,x+.075,.95-r*.3);
    const m=new THREE.Mesh(mgeo,[tmC,tmC,new THREE.MeshStandardMaterial({map:tex(t,isW(t)||t.n===0)}),tmC,tmC,tmC]);
-   m.position.set(w[0],1.97,w[1]);m.rotation.y=A(i);m.userData={seat:i,mi};m.castShadow=true;meldG.add(m);meldTiles.push(m);x+=.16});x+=.1})}
+   m.position.set(w[0],1.97,w[1]);m.rotation.y=A(i);m.userData={seat:i,mi};m.castShadow=true;meldG.add(m);meldTiles.push(m);x+=.17});x+=.25})}
 }
 function renderHand(){
  myTiles=[];fillRack(me,hand);
