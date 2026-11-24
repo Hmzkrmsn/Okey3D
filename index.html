@@ -18,7 +18,7 @@ body{margin:0;overflow:hidden;font-family:Arial,sans-serif;background:#182536}
 #buttons{text-align:center;margin-top:6px}
 button{border:0;border-radius:8px;padding:10px 14px;margin:3px;background:#287ac0;color:#fff;font-weight:bold;cursor:pointer;font-size:14px}
 button:disabled{opacity:.35;cursor:default}
-#tea{background:#b8561a}
+#tea{background:#b8561a}#drinkCoffee{background:#f1f1f1;color:#30251d}#drinkCola{background:#a51f2d}#drinkTea{background:#b8561a}#pieceName{min-height:18px;text-align:center;color:#ffe3a6;font-weight:bold;font-size:14px}
 #status{text-align:center;font-size:14px;color:#d6eaff}
 #myHealth{display:none;text-align:center;margin:5px 0 2px;font-size:21px;font-weight:bold;color:#ff7180;text-shadow:0 2px 5px #000}
 #lobby{position:fixed;inset:0;z-index:10;background:#182536f2;display:flex;align-items:center;justify-content:center;color:#fff}
@@ -57,6 +57,7 @@ button:disabled{opacity:.35;cursor:default}
 
 <div id="game">
 <div id="status">Bir oyun başlat veya odaya katıl.</div>
+<div id="pieceName" aria-live="polite"></div>
 <div id="myHealth" aria-live="polite"></div>
 <div id="buttons">
 <button id="dp" disabled>Desteden çek</button>
@@ -72,7 +73,9 @@ button:disabled{opacity:.35;cursor:default}
 <button id="exit">Çık</button>
 <button id="sf" style="display:none" disabled>Kendine ateş et</button>
 <button id="sa" style="display:none" disabled>Ateş et</button>
-<button id="tea">☕ Çay iste</button>
+<button id="drinkCola">🥤 Kola iste</button>
+<button id="drinkTea">🍵 Çay iste</button>
+<button id="drinkCoffee">☕ Kahve iste</button>
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -144,6 +147,19 @@ function makeCola(){const g=new THREE.Group();
  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.037,.037,.02,12),new THREE.MeshStandardMaterial({color:0xd8142a}));cap.position.y=.355;g.add(cap);
  const h=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.5,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));h.position.y=.2;g.add(h);
  return g}
+
+
+function makeCoffee(){const g=new THREE.Group();
+ // Tombul, beyaz seramik kahve kupası
+ const white=new THREE.MeshStandardMaterial({color:0xfafafa,roughness:.22,metalness:0});
+ const profile=[[0,0],[.105,0],[.13,.025],[.145,.09],[.15,.23],[.14,.32],[.135,.345],[.12,.35],[0,.35]].map(p=>new THREE.Vector2(...p));
+ const mug=new THREE.Mesh(new THREE.LatheGeometry(profile,32),white);g.add(mug);
+ const coffee=new THREE.Mesh(new THREE.CylinderGeometry(.127,.127,.018,32),new THREE.MeshStandardMaterial({color:0x3a1b0b,roughness:.28}));coffee.position.y=.315;g.add(coffee);g.userData.liq=coffee;
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(.135,.009,10,32),white);rim.rotation.x=Math.PI/2;rim.position.y=.345;g.add(rim);
+ const handle=new THREE.Mesh(new THREE.TorusGeometry(.095,.022,12,28,Math.PI*2),white);handle.position.set(.145,.19,0);g.add(handle);
+ const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.018,32),white);saucer.position.y=-.012;g.add(saucer);
+ const hit=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.5,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));hit.position.y=.2;g.add(hit);
+ g.scale.setScalar(.68);return g}
 
 const dark=new THREE.MeshStandardMaterial({color:0x252b35});
 const blk=new THREE.MeshStandardMaterial({color:0x151515}),lip=new THREE.MeshStandardMaterial({color:0xb5483f});
@@ -369,41 +385,44 @@ const tray=makeTea();tray.position.set(.45,1.47,.8);tray.visible=false;waiter.ad
 {const td=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.04,20),new THREE.MeshStandardMaterial({color:0xc8ccd2,metalness:.6,roughness:.3}));td.position.y=-.03;tray.add(td)}
 const trayC=makeCola();trayC.position.set(.45,1.5,.8);trayC.visible=false;waiter.add(trayC);
 {const td=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.03,20),new THREE.MeshStandardMaterial({color:0xc8ccd2,metalness:.6,roughness:.3}));td.position.y=-.01;trayC.add(td)}
+const trayCoffee=makeCoffee();trayCoffee.position.set(.45,1.5,.8);trayCoffee.visible=false;waiter.add(trayCoffee);
 function waiterPose(){const a=waiter.userData.a;a[0].rotation.x=-1.25;a[1].rotation.x+=((carry?-1.2:.4)-a[1].rotation.x)*.2}
 let wState='idle',wp=[],backPts=[],teas=[],teaQ=[],cur=0;const slotN=[0,0,0,0];
-let curK='s',carry=false;
-function setTray(v){carry=v;tray.visible=v&&mode!=='chess';trayC.visible=v&&mode==='chess'}
+let curK='s',curDrink='tea',carry=false;
+function setTray(v){carry=v;tray.visible=v&&curDrink==='tea';trayC.visible=v&&curDrink==='cola';trayCoffee.visible=v&&curDrink==='coffee'}
 const hasDrink=q=>teas.some(x=>x.userData.seat===q)||teaQ.some(x=>x.s===q)||(wState==='going'&&cur===q&&curK==='s');
-function startTea(q){if(hasDrink(q)){if(q===me)msg(mode==='chess'?'Zaten bir kolan var. Bitirince garson boş şişeyi alır.':'Zaten bir çayın var. Bitirince garson boş bardağı alır.');return}
- teaQ.push({s:q,k:'s'});if(q===me)msg('Garson: "Hemen getiriyorum!"');else if(view&&view.names)msg(view.names[q]+' içecek istedi.');if(wState==='idle')nextTea()}
-function nextTea(){if(!teaQ.length)return;const q=teaQ.shift();cur=q.s;curK=q.k;
+function startTea(q,drink='tea'){if(hasDrink(q)){if(q===me)msg('Zaten bir içeceğin var. Bitirince garson bardağı/şişeyi alır.');return}
+ teaQ.push({s:q,k:'s',d:drink});if(q===me)msg('Garson: "Hemen getiriyorum!"');else if(view&&view.names)msg(view.names[q]+' içecek istedi.');if(wState==='idle')nextTea()}
+function nextTea(){if(!teaQ.length)return;const q=teaQ.shift();cur=q.s;curK=q.k;curDrink=q.d||'tea';
  const p=seatPos(cur),tx=p.x+(cur%2===0?1.4:0),tz=p.z+(cur%2===1?1.4:0),side=tx>=0?5.4:-5.4;
  const v=(x,z)=>new THREE.Vector3(x,0,z),sx=side>0?4.4:-4.4,pts=mode==='rou'?ringRoute(cur,v,sx,side):[v(sx,-10.2),v(side,-8),v(side,tz),v(tx,tz)];
  wp=pts;backPts=pts.slice(0,-1).reverse().concat(HOME.clone());wState='going';setTray(q.k==='s')}
 const drinkPos=q=>mode==='chess'?L2W(q,-2.15,1.3):mode==='rou'?L2W(q,-.6,2.1):L2W(q,-1.5,1.6);
-const makeDrink=()=>mode==='chess'?makeCola():makeTea();
-function placeTea(){const q=cur,t=makeDrink(),w=drinkPos(q);t.position.set(w[0],1.96,w[1]);t.userData.base=1.96;t.userData.seat=q;t.userData.slot=0;scene.add(t);teas.push(t);setTray(false)}
+const makeDrink=kind=>kind==='cola'?makeCola():kind==='coffee'?makeCoffee():makeTea();
+function placeTea(){const q=cur,t=makeDrink(curDrink),w=drinkPos(q);t.position.set(w[0],1.96,w[1]);t.userData.base=1.96;t.userData.seat=q;t.userData.slot=0;t.userData.drink=curDrink;scene.add(t);teas.push(t);setTray(false)}
 function collect(q){for(let i=teas.length-1;i>=0;i--)if(teas[i].userData.seat===q){scene.remove(teas[i]);teas.splice(i,1)}}
 function drink(g){const u=g.userData;if(u.sip)return;if(u.empty){msg('Boş, garson birazdan alır.');return}net({t:'sip',slot:u.slot})}
-function onNet(m){if(m.t==='tea')startTea(m.seat);
+function onNet(m){if(m.t==='tea')startTea(m.seat,m.drink||'tea');
  else if(m.t==='sip'){const g=teas.find(x=>x.userData.seat===m.seat&&x.userData.slot===m.slot);
-  if(g&&!g.userData.sip&&!g.userData.empty){g.userData.sip=performance.now();if(m.seat===me)msg(mode==='chess'?'Kolayı yudumluyorsun... 🥤':'Çayı yudumluyorsun... ☕')}}}
+  if(g&&!g.userData.sip&&!g.userData.empty){g.userData.sip=performance.now();if(m.seat===me)msg(g.userData.drink==='cola'?'Kolayı yudumluyorsun... 🥤':g.userData.drink==='coffee'?'Kahveni yudumluyorsun... ☕':'Çayını yudumluyorsun... 🍵')}}}
 const bcast=m=>{conns.forEach(c=>c&&c.send(m));onNet(m)};
 function net(m){if(isHost){m.seat=Math.max(me,0);bcast(m)}else if(conn)conn.send(m);else onNet({...m,seat:0})}
 function updateTeas(){const now=performance.now();
  for(const g of teas){const u=g.userData;if(!u.sip)continue;const e=(now-u.sip)/1500;
-  if(e>=1){u.sip=0;u.empty=true;u.liq.visible=false;g.position.y=u.base;if(u.seat===me)msg('Afiyet olsun! Garson boşu toplayacak.');teaQ.push({s:u.seat,k:'c'});if(wState==='idle')nextTea();continue}
+  if(e>=1){u.sip=0;u.empty=true;u.liq.visible=false;g.position.y=u.base;if(u.seat===me)msg('Afiyet olsun! Garson boş bardağı/şişeyi toplayacak.');teaQ.push({s:u.seat,k:'c',d:u.drink});if(wState==='idle')nextTea();continue}
   g.position.y=u.base+Math.sin(Math.PI*e)*.45;const sc=Math.max(.02,1-e);u.liq.scale.y=sc;u.liq.position.y=.03+.09*sc}}
 function updateWaiter(){
  if(wState==='idle')return;
  const t=wp[0],dx=t.x-waiter.position.x,dz=t.z-waiter.position.z,d=Math.hypot(dx,dz);
  if(d<.1){wp.shift();if(!wp.length){
-  if(wState==='going'){if(curK==='s'){placeTea();if(cur===me)msg(mode==='chess'?'Kolan geldi! İçmek için şişeye tıkla 🥤':'Çayın geldi! İçmek için bardağa tıkla ☕')}else collect(cur);wState='back';wp=backPts}
+  if(wState==='going'){if(curK==='s'){placeTea();if(cur===me)msg(curDrink==='cola'?'Kolan geldi! İçmek için şişeye tıkla 🥤':curDrink==='coffee'?'Kahven geldi! İçmek için beyaz kupaya tıkla ☕':'Çayın geldi! İçmek için bardağa tıkla 🍵')}else collect(cur);wState='back';wp=backPts}
   else{wState='idle';waiter.rotation.y=0;waiter.position.y=0;nextTea()}}return}
  waiter.position.x+=dx/d*.07;waiter.position.z+=dz/d*.07;waiter.rotation.y=Math.atan2(dx,dz);
  waiter.position.y=Math.abs(Math.sin(performance.now()*.012))*.06;
 }
-$('tea').onclick=()=>net({t:'tea'});
+$('drinkCola').onclick=()=>net({t:'tea',drink:'cola'});
+$('drinkTea').onclick=()=>net({t:'tea',drink:'tea'});
+$('drinkCoffee').onclick=()=>net({t:'tea',drink:'coffee'});
 
 /* ---------- OYUN MANTIĞI (sunucu = oda kuran) ---------- */
 let G=null,L={type:['human','empty','empty','empty'],names:['','','',''],look:[null,null,null,null]},conns=[],peer=null,conn=null,isHost=false;
@@ -786,6 +805,15 @@ function buildChess(){
  if(inCheck(P))hl(P.b.indexOf(P.t==='w'?'K':'k'),0xff3b30);
  if(selSq>=0){hl(selSq,0x42baff);for(const m of CH.legal.filter(x=>x.f===selSq)){const d=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.012,14),new THREE.MeshBasicMaterial({color:P.b[m.t]||m.e?0xff5a4a:0x66e08a})),c=sqPos(m.t);d.position.set(c[0],2.06,c[1]);hlG.add(d)}}
 }
+const pieceNames={K:'Şah',Q:'Vezir',R:'Kale',B:'Fil',N:'At',P:'Piyon'};
+function chessHover(e){if(mode!=='chess'||!CH){$('pieceName').textContent='';return}
+ mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
+ const hit=ray.intersectObjects(pcG.children,true)[0];if(!hit){$('pieceName').textContent='';return}
+ let root=hit.object;while(root&&root.parent!==pcG)root=root.parent;
+ const q=root?.userData.sq;if(q===undefined){$('pieceName').textContent='';return}
+ const ch=CH.P.b[q];if(!ch){$('pieceName').textContent='';return}
+ const color=ch===ch.toUpperCase()?'Beyaz':'Siyah';$('pieceName').textContent=color+' '+pieceNames[ch.toUpperCase()]}
+window.addEventListener('pointermove',chessHover);
 function chessPick(e){mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
  const dh=ray.intersectObjects(teas.filter(x=>x.userData.seat===me),true)[0],bh=ray.intersectObjects([...sqMeshes,...pcG.children],true)[0];
  if(dh&&(!bh||dh.distance<bh.distance)){let g=dh.object;while(g&&!teas.includes(g))g=g.parent;if(g)drink(g);return}
@@ -842,7 +870,7 @@ function showMode(){const c=mode==='chess',r=mode==='rou',o=mode==='okey';chessG
  for(const id of['dp','dd','ds','sd','cf','gr','op','cl'])$(id).style.display=o?'':'none';
  $('sf').style.display=$('sa').style.display=r?'':'none';
  $('myHealth').style.display=r?'block':'none';
- $('tea').textContent=c?'🥤 Kola iste':'☕ Çay iste'}
+ $('pieceName').textContent='';$('pieceName').style.display=c?'block':'none'}
 function applyChess(st){view=st;me=st.seat;mode='chess';CH=st;CH.legal=legal(st.P);selSq=-1;
  setLook(player,st.look[me]);for(let i=0;i<4;i++){if(i!==me)setLook(avatars[i],st.look[i]);avatars[i].visible=i!==me&&['human','bot'].includes(st.type[i])}
  if(!started){started=true;$('lobby').style.display='none';showMode();zoom=.85;sit(true)}
