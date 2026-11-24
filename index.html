@@ -20,6 +20,7 @@ button{border:0;border-radius:8px;padding:10px 14px;margin:3px;background:#287ac
 button:disabled{opacity:.35;cursor:default}
 #tea{background:#b8561a}
 #status{text-align:center;font-size:14px;color:#d6eaff}
+#myHealth{display:none;text-align:center;margin:5px 0 2px;font-size:21px;font-weight:bold;color:#ff7180;text-shadow:0 2px 5px #000}
 #lobby{position:fixed;inset:0;z-index:10;background:#182536f2;display:flex;align-items:center;justify-content:center;color:#fff}
 .box{width:min(360px,92vw);text-align:center}
 .box input{padding:10px;border-radius:8px;border:0;margin:4px;width:150px;font-size:15px}
@@ -48,6 +49,7 @@ button:disabled{opacity:.35;cursor:default}
 
 <div id="game">
 <div id="status">Bir oyun başlat veya odaya katıl.</div>
+<div id="myHealth" aria-live="polite"></div>
 <div id="buttons">
 <button id="dp" disabled>Desteden çek</button>
 <button id="dd" disabled>Soldan al</button>
@@ -481,7 +483,8 @@ let RU=null,aim=false,lastEv=-1,lastRound=0,rlog=[];
 function applyRou(st){view=st;me=st.seat;mode='rou';RU=st;aim=false;
  setLook(player,st.look[me]);
  for(let i=0;i<10;i++){if(i!==me)setLook(avatars[i],st.look[i]);const on=['human','bot'].includes(st.type[i]);avatars[i].visible=i!==me&&on&&st.hp[i]>0;
-  const sp=seatPos(i),lb=rLab[i];lb.visible=on;if(on){lb.position.set(sp.x*.92,3.35,sp.z*.92);setLab(i,st.hp[i]>0?st.names[i]+' '+'♥'.repeat(st.hp[i]):'☠ '+st.names[i],st.turn===i&&!st.over)}}
+  const sp=seatPos(i),lb=rLab[i];lb.visible=on&&i!==me;if(on&&i!==me){lb.position.set(sp.x*.92,3.35,sp.z*.92);setLab(i,st.hp[i]>0?st.names[i]+' '+'♥'.repeat(st.hp[i]):'☠ '+st.names[i],st.turn===i&&!st.over)}}
+ $('myHealth').textContent='Canın: '+(st.hp[me]>0?'♥ '.repeat(st.hp[me]).trim():'0');
  if(!started){started=true;$('lobby').style.display='none';showMode();zoom=1;sit(true);lastEv=st.ev?st.ev.id:0;gunRot=gunTarget=A(st.turn)}
  if(st.round!==lastRound){lastRound=st.round;rlog.push('— Tur '+st.round+': '+st.live0+' dolu, '+st.blank0+' boş —')}
  if(st.ev&&st.ev.id>lastEv){lastEv=st.ev.id;const e=st.ev;rlog.push(esc(st.names[e.shooter])+' → '+(e.target===e.shooter?'kendine':esc(st.names[e.target]))+': '+(e.live?'DOLU 💥':'boş (klik)'));gunTarget=A(e.target);fireFx(e.live);setTimeout(()=>{if(RU)gunTarget=A(RU.turn)},1200)}
@@ -501,6 +504,7 @@ function showMode(){const c=mode==='chess',r=mode==='rou',o=mode==='okey';chessG
  tbl.forEach(x=>x.visible=!r);rouG.visible=r;gun.visible=r;if(!r)rLab.forEach(l=>l.visible=false);
  for(const id of['dp','dd','ds','sd','cf','gr','op','cl'])$(id).style.display=o?'':'none';
  $('sf').style.display=$('sa').style.display=r?'':'none';
+ $('myHealth').style.display=r?'block':'none';
  $('tea').textContent=c?'🥤 Kola iste':'☕ Çay iste'}
 function applyChess(st){view=st;me=st.seat;mode='chess';CH=st;CH.legal=legal(st.P);selSq=-1;
  setLook(player,st.look[me]);for(let i=0;i<4;i++){if(i!==me)setLook(avatars[i],st.look[i]);avatars[i].visible=i!==me&&['human','bot'].includes(st.type[i])}
@@ -599,7 +603,7 @@ function animate(){
   camera.position.lerp(new THREE.Vector3(t.x-Math.sin(yaw)*8,4+pitch*2,t.z-Math.cos(yaw)*8),.12);
   camera.lookAt(t.x,t.y+1.2,t.z);
  }else{
-  const a=A(me),ey=a+Math.PI+offY,ex=Math.sin(a)*(mode==='rou'?3.7:3.5)*zoom,ez=Math.cos(a)*(mode==='rou'?3.7:3)*zoom,eh=2+4.3*zoom,p=-Math.atan2(eh-2,Math.hypot(ex,ez))+offP;
+  const a=A(me),low=mode==='okey'||mode==='rou',ey=a+Math.PI+offY,ex=Math.sin(a)*(mode==='rou'?3.7:3.5)*zoom,ez=Math.cos(a)*(mode==='rou'?3.7:3)*zoom,eh=low?2.8:2+4.3*zoom,p=-Math.atan2(eh-2,Math.hypot(ex,ez))+offP;
   camera.position.lerp(new THREE.Vector3(ex,eh,ez),.15);
   look.set(camera.position.x+Math.sin(ey)*Math.cos(p),camera.position.y+Math.sin(p),camera.position.z+Math.cos(ey)*Math.cos(p));
   camera.lookAt(look);
@@ -624,7 +628,7 @@ $('bt').onclick=()=>{botsOn=!botsOn;$('bt').textContent='Botlar: '+(botsOn?'Aç�
 $('sf').onclick=()=>{if(RU&&RU.turn===me&&!RU.over)send({t:'shoot',target:me})};
 $('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;msg(aim?'Hedef oyuncuya tıkla (iptal için tekrar bas).':'Sıra sende.')};
 $('again').onclick=()=>{if(isHost)restart();else if(conn)conn.send({t:'again'})};
-$('exit').onclick=()=>location.reload();
+$('exit').onclick=()=>{location.replace(location.pathname+location.search+(location.search?'&':'?')+'restart='+Date.now())};
 $('solo').onclick=()=>{isHost=true;me=0;initL();L.names[0]=nm();L.look[0]=myLook();startGame(true)};
 $('mk').onclick=()=>{
  if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi, internetini kontrol et.';return}
