@@ -25,7 +25,11 @@ button:disabled{opacity:.35;cursor:default}
 .box{width:min(360px,92vw);text-align:center}
 .box input{padding:10px;border-radius:8px;border:0;margin:4px;width:150px;font-size:15px}
 #lobby .look{margin:6px 0 10px;font-size:14px}
+#avatarPreview{width:220px;height:175px;margin:8px auto 10px;border:1px solid #58718a;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at center,#344b60,#101923)}
+#avatarPreview canvas{display:block;width:100%;height:100%}
+.lookRow{margin:5px 0}
 .box input[type=color]{width:44px;height:32px;padding:0;margin:4px;border-radius:6px;vertical-align:middle}
+.box select{padding:7px 9px;margin:4px;border:0;border-radius:7px;background:#fff;color:#182536;font-size:13px}
 #modes{margin:6px 0 10px}#modes button{background:#3a4a5a}#modes button.on{background:#287ac0;outline:2px solid #9ed5ff}
 #lt{margin:12px 0;color:#9ed5ff;min-height:20px;white-space:pre-line}
 </style>
@@ -35,7 +39,11 @@ button:disabled{opacity:.35;cursor:default}
 <h2>Okey 3D Kafe</h2>
 <div id="modes"><button id="m1" class="on">101 Okey</button><button id="m2">Satranç</button><button id="m3">Rus Ruleti</button><br><button id="bt" style="display:none">Botlar: Açık</button></div>
 <input id="nm" placeholder="Adın" maxlength="12"><br>
-<div class="look">Gömlek <input type="color" id="cs" value="#2585dc"> Saç <input type="color" id="ch" value="#2b1b12"> Ten <input type="color" id="ck" value="#ffc38e"></div>
+<div id="avatarPreview" aria-label="Karakter önizlemesi"></div>
+<div class="look">
+<div class="lookRow">Karakter <select id="genderStyle"><option value="male">Erkek</option><option value="female">Kadın</option></select>　Saç <select id="hairStyle"><option value="classic">Kısa</option><option value="spiky">Hacimli</option><option value="side">Yana taralı</option><option value="long">Uzun düz</option><option value="bob">Küt</option><option value="pony">At kuyruğu</option><option value="braid">Örgülü</option><option value="curly">Kıvırcık</option><option value="pixie">Kısa katlı</option><option value="waves">Dalgalı uzun</option><option value="bun">Topuz</option><option value="afro">Kabarık bukle</option></select></div>
+<div class="lookRow">Üst kıyafet <select id="shirtStyle"><option value="normal">Kısa kollu</option><option value="hoodie">Uzun kollu kapüşonlu</option><option value="jacket">Ceket</option></select> <span id="hoodControl" hidden>Kapüşon <select id="hoodStyle"><option value="closed">Kapalı</option><option value="open">Açık</option></select></span>　Pantolon <select id="pantsStyle"><option value="normal">Normal</option><option value="jeans">Kot</option><option value="shorts">Şort</option></select></div>
+<div class="lookRow">Üst renk <input type="color" id="cs" value="#2585dc"> Pantolon rengi <input type="color" id="cp" value="#252b35"></div><div class="lookRow">Saç rengi <input type="color" id="ch" value="#2b1b12"> Ten <input type="color" id="ck" value="#ffc38e"></div></div>
 <button id="solo">Tek başına (botlarla)</button>
 <button id="mk">Oda kur</button><br>
 <input id="cd" placeholder="Oda kodu" maxlength="4">
@@ -139,25 +147,196 @@ function makeCola(){const g=new THREE.Group();
 
 const dark=new THREE.MeshStandardMaterial({color:0x252b35});
 const blk=new THREE.MeshStandardMaterial({color:0x151515}),lip=new THREE.MeshStandardMaterial({color:0xb5483f});
-function person(col,hc=0x2b1b12,sk=0xffc38e){const p=new THREE.Group(),sh=new THREE.MeshStandardMaterial({color:col}),hm=new THREE.MeshStandardMaterial({color:hc}),skin=new THREE.MeshStandardMaterial({color:sk});
+function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
+ const p=new THREE.Group(),sh=new THREE.MeshStandardMaterial({color:col}),hm=new THREE.MeshStandardMaterial({color:hc}),skin=new THREE.MeshStandardMaterial({color:sk}),pants=new THREE.MeshStandardMaterial({color:0x252b35});
  const add=(g,m,x,y,z)=>{m.position.set(x,y,z);m.castShadow=true;g.add(m);return m};
+ // Mevcut yuvarlak kafa ve gövde korunur.
  add(p,new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,1.1,6),sh),0,1.25,0);
  add(p,new THREE.Mesh(new THREE.IcosahedronGeometry(.4,1),skin),0,2.1,0);
- add(p,new THREE.Mesh(new THREE.SphereGeometry(.44,16,12,0,Math.PI*2,0,Math.PI*.5),hm),0,2.17,-.03);
- add(p,new THREE.Mesh(new THREE.BoxGeometry(.5,.1,.12),hm),0,2.36,.33);
+ // Saçın klasik modeli, eski karakterdekiyle aynı geometri.
+ const hair=new THREE.Group();p.add(hair);
+ add(hair,new THREE.Mesh(new THREE.SphereGeometry(.44,16,12,0,Math.PI*2,0,Math.PI*.5),hm),0,2.17,-.03);
+ const fringe=add(hair,new THREE.Mesh(new THREE.BoxGeometry(.5,.1,.12),hm),0,2.36,.33);
+ // Dikenli saç modeli
+ const spikes=new THREE.Group();hair.add(spikes);
+ for(let i=0;i<7;i++){
+  const a=i*Math.PI*2/7;
+  const q=new THREE.Mesh(new THREE.ConeGeometry(.095,.25,7),hm);
+  q.position.set(Math.cos(a)*.25,2.39,Math.sin(a)*.25);
+  q.rotation.z=Math.cos(a)*-.45;q.rotation.x=Math.sin(a)*.45;
+  q.castShadow=true;spikes.add(q);
+ }
+ spikes.visible=false;
+ // Yana taralı saç
+ const sideHair=add(hair,new THREE.Mesh(new THREE.BoxGeometry(.42,.13,.22),hm),-.13,2.37,.27);
+ sideHair.rotation.z=-.18;sideHair.visible=false;
+ // Uzun saç: iki yandaki tutamlar
+ const longHair=new THREE.Group();hair.add(longHair);
+ const backHair=new THREE.Mesh(new THREE.SphereGeometry(.34,14,12),hm);backHair.position.set(0,1.91,-.24);backHair.scale.set(1.12,1.45,.78);backHair.castShadow=true;longHair.add(backHair);
+ for(const x of[-.32,.32]){
+  const q=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,.88,10),hm);
+  q.position.set(x,1.82,.19);q.scale.set(1,1.08,1);q.castShadow=true;longHair.add(q);
+ }
+ longHair.visible=false;
+ // Küt saç: başın arkasını ve yanlarını saran, omuz hizasında biten model.
+ const bobHair=new THREE.Group();hair.add(bobHair);
+ const bobBack=new THREE.Mesh(new THREE.SphereGeometry(.39,16,14),hm);bobBack.position.set(0,2.00,-.12);bobBack.scale.set(1.13,1.08,.95);bobBack.castShadow=true;bobHair.add(bobBack);
+ for(const x of[-.34,.34]){const q=new THREE.Mesh(new THREE.CylinderGeometry(.105,.12,.58,12),hm);q.position.set(x,1.92,.19);q.scale.set(.92,1.12,1);q.rotation.z=x*.16;q.castShadow=true;bobHair.add(q)}
+ bobHair.visible=false;
+ // At kuyruğu: arkada belirgin, aşağı doğru uzanan kuyruk ve saç tokası.
+ const ponyHair=new THREE.Group();hair.add(ponyHair);
+ const ponyBase=new THREE.Mesh(new THREE.SphereGeometry(.37,14,12),hm);ponyBase.position.set(0,2.16,-.04);ponyBase.scale.set(1.08,.78,.95);ponyBase.castShadow=true;ponyHair.add(ponyBase);
+ const pony=new THREE.Mesh(new THREE.CylinderGeometry(.055,.095,.82,12),hm);pony.position.set(.40,1.78,-.10);pony.rotation.z=-.22;pony.rotation.x=-.12;pony.castShadow=true;ponyHair.add(pony);
+ const tie=new THREE.Mesh(new THREE.TorusGeometry(.075,.025,8,16),new THREE.MeshStandardMaterial({color:0x6b4b9b}));tie.position.set(.37,1.98,-.07);tie.rotation.x=Math.PI/2;ponyHair.add(tie);
+ ponyHair.visible=false;
+ // Örgü: sırtta birbirini takip eden belirgin saç halkaları.
+ const braidHair=new THREE.Group();hair.add(braidHair);
+ const braidCap=new THREE.Mesh(new THREE.SphereGeometry(.38,14,12,0,Math.PI*2,0,Math.PI*.55),hm);braidCap.position.set(0,2.17,-.04);braidHair.add(braidCap);
+ for(let i=0;i<7;i++){const q=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),hm);q.position.set(.34+(i%2?-.035:.035),1.98-i*.105,.16);q.scale.set(.88,1.18,.8);q.castShadow=true;braidHair.add(q)}
+ braidHair.visible=false;
+ // Kıvırcık saç: farklı boyutlarda yuvarlak bukleler.
+ const curlyHair=new THREE.Group();hair.add(curlyHair);
+ const curlBase=new THREE.Mesh(new THREE.SphereGeometry(.37,14,12),hm);curlBase.position.set(0,2.19,-.03);curlBase.scale.set(1.12,.82,1.05);curlyHair.add(curlBase);
+ for(let i=0;i<11;i++){const a=i*Math.PI*2/11;const q=new THREE.Mesh(new THREE.SphereGeometry(.13+(i%3)*.012,10,8),hm);q.position.set(Math.cos(a)*.31,2.27+(i%2)*.055,Math.sin(a)*.29+.07);q.castShadow=true;curlyHair.add(q)}
+ curlyHair.visible=false;
+ // Kısa katlı: asimetrik yan perçem ve belirgin favoriler.
+ const pixieHair=new THREE.Group();hair.add(pixieHair);
+ const pixieCap=new THREE.Mesh(new THREE.SphereGeometry(.425,16,12,0,Math.PI*2,0,Math.PI*.56),hm);pixieCap.position.set(0,2.18,-.025);pixieHair.add(pixieCap);
+ const pixieFringe=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),hm);pixieFringe.position.set(-.16,2.34,.30);pixieFringe.scale.set(1.35,.48,.55);pixieFringe.rotation.z=-.22;pixieHair.add(pixieFringe);
+ for(const x of[-.36,.36]){const q=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.32,4,8),hm);q.position.set(x,2.02,.08);q.castShadow=true;pixieHair.add(q)}
+ pixieHair.visible=false;
+ // Dalgalı uzun saç: omuzların önünden inen kıvrımlı tutamlar.
+ const wavesHair=new THREE.Group();hair.add(wavesHair);
+ const wavesCap=new THREE.Mesh(new THREE.SphereGeometry(.43,16,12,0,Math.PI*2,0,Math.PI*.55),hm);wavesCap.position.set(0,2.17,-.02);wavesHair.add(wavesCap);
+ for(const x of[-.34,.34])for(let j=0;j<4;j++){const q=new THREE.Mesh(new THREE.SphereGeometry(.115,10,8),hm);q.position.set(x+(j%2?-.035:.035),2.02-j*.19,.18+(j%2)*.035);q.scale.set(1,1.25,.85);q.castShadow=true;wavesHair.add(q)}
+ wavesHair.visible=false;
+ // Topuz: başın üstünde büyük, net biçimde görünen saç topuzu.
+ const bunHair=new THREE.Group();hair.add(bunHair);
+ const bunCap=new THREE.Mesh(new THREE.SphereGeometry(.43,16,12,0,Math.PI*2,0,Math.PI*.55),hm);bunCap.position.set(0,2.17,-.02);bunHair.add(bunCap);
+ const bun=new THREE.Mesh(new THREE.SphereGeometry(.19,14,12),hm);bun.position.set(0,2.55,-.10);bun.scale.set(1,1.05,.9);bun.castShadow=true;bunHair.add(bun);
+ const bunBand=new THREE.Mesh(new THREE.TorusGeometry(.13,.025,8,18),new THREE.MeshStandardMaterial({color:0x8c5a9e}));bunBand.position.set(0,2.53,-.09);bunBand.rotation.x=Math.PI/2;bunHair.add(bunBand);
+ bunHair.visible=false;
+ // Kabarık bukle: daha geniş bir siluet oluşturan yoğun bukleler.
+ const afroHair=new THREE.Group();hair.add(afroHair);
+ for(let i=0;i<22;i++){const a=i*2.399963;const y=2.19+(i%4)*.055;const r=.30+((i%3)*.025);const q=new THREE.Mesh(new THREE.SphereGeometry(.13+(i%4)*.009,10,8),hm);q.position.set(Math.cos(a)*r,y,Math.sin(a)*r-.015);q.castShadow=true;afroHair.add(q)}
+ afroHair.visible=false;
+ // Kadın görünümü: seçilen saç modelinden bağımsız, omuzlara inen uzun yan tutamlar.
+ const femaleHair=new THREE.Group();hair.add(femaleHair);
+ const femaleBack=new THREE.Mesh(new THREE.SphereGeometry(.36,14,12),hm);femaleBack.position.set(0,1.92,-.22);femaleBack.scale.set(1.12,1.35,.82);femaleBack.castShadow=true;femaleHair.add(femaleBack);
+ for(const x of[-.35,.35]){const q=new THREE.Mesh(new THREE.CylinderGeometry(.095,.13,.88,12),hm);q.position.set(x,1.82,.17);q.rotation.z=x*.12;q.castShadow=true;femaleHair.add(q)}
+ femaleHair.visible=false;
+ // Yüz ayrıntıları
  for(const x of[-.14,.14])add(p,new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),blk),x,2.13,.36);
  add(p,new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.07),skin),0,2.04,.41);
  add(p,new THREE.Mesh(new THREE.BoxGeometry(.15,.035,.04),lip),0,1.93,.37);
+ // Üst kıyafet ekleri
+ const clothes=new THREE.Group();p.add(clothes);
+ const hood=add(clothes,new THREE.Mesh(new THREE.SphereGeometry(.31,16,12),sh),0,2.02,-.27);
+ hood.scale.set(1.02,1.12,.82);hood.visible=false;
+ const pocket=add(clothes,new THREE.Mesh(new THREE.BoxGeometry(.35,.18,.035),sh),0,1.05,.37);pocket.visible=false;
+ const jacket=new THREE.Group();clothes.add(jacket);
+ const jacketTrim=new THREE.MeshStandardMaterial({color:0x263746,roughness:.72});
+ const jacketMetal=new THREE.MeshStandardMaterial({color:0xd8dce2,metalness:.65,roughness:.3});
+ // Ön paneller: ceketin gövde üzerindeki belirgin iki kanadı.
+ for(const x of[-.135,.135]){
+  const panel=new THREE.Mesh(new THREE.BoxGeometry(.145,.76,.055),sh);
+  panel.position.set(x,1.25,.365);panel.castShadow=true;jacket.add(panel);
+  const seam=new THREE.Mesh(new THREE.BoxGeometry(.012,.66,.012),jacketTrim);
+  seam.position.set(x+(x<0?-.061:.061),1.25,.398);jacket.add(seam);
+ }
+ // Omuz dikişleri ve katlı yaka parçaları.
+ for(const x of[-.29,.29]){
+  const shoulder=new THREE.Mesh(new THREE.BoxGeometry(.19,.055,.045),sh);
+  shoulder.position.set(x,1.59,.12);shoulder.rotation.z=x<0?-.12:.12;jacket.add(shoulder);
+ }
+ for(const side of[-1,1]){
+  const lapel=new THREE.Mesh(new THREE.BoxGeometry(.115,.43,.055),jacketTrim);
+  lapel.position.set(side*.105,1.48,.414);lapel.rotation.z=side*.28;jacket.add(lapel);
+  const collar=new THREE.Mesh(new THREE.BoxGeometry(.13,.16,.055),sh);
+  collar.position.set(side*.075,1.68,.365);collar.rotation.z=side*-.28;jacket.add(collar);
+  // Göğüs cebi ve alt cep kapakları.
+  const chestPocket=new THREE.Mesh(new THREE.BoxGeometry(.105,.12,.025),jacketTrim);
+  chestPocket.position.set(side*.225,1.43,.414);jacket.add(chestPocket);
+  const chestFlap=new THREE.Mesh(new THREE.BoxGeometry(.12,.035,.03),sh);
+  chestFlap.position.set(side*.225,1.49,.43);jacket.add(chestFlap);
+  const lowerPocket=new THREE.Mesh(new THREE.BoxGeometry(.13,.105,.025),jacketTrim);
+  lowerPocket.position.set(side*.205,1.08,.414);jacket.add(lowerPocket);
+  const lowerFlap=new THREE.Mesh(new THREE.BoxGeometry(.145,.035,.03),sh);
+  lowerFlap.position.set(side*.205,1.14,.43);jacket.add(lowerFlap);
+  // Kol uçlarında ince manşet şeridi.
+  const cuff=new THREE.Mesh(new THREE.BoxGeometry(.215,.075,.22),jacketTrim);
+  cuff.position.set(side*.45,.99,0);jacket.add(cuff);
+ }
+ // Fermuar hattı ve küçük metal çıtçıtlar.
+ const zip=new THREE.Mesh(new THREE.BoxGeometry(.022,.68,.025),jacketMetal);
+ zip.position.set(0,1.25,.425);jacket.add(zip);
+ for(let y of[1.18,1.32,1.46]){
+  const button=new THREE.Mesh(new THREE.SphereGeometry(.025,8,8),jacketMetal);
+  button.position.set(.045,y,.445);jacket.add(button);
+ }
+ jacket.visible=false;
  const l=[],a=[];
- for(const x of[-.22,.22]){const g=new THREE.Group();g.position.set(x,.8,0);add(g,new THREE.Mesh(new THREE.BoxGeometry(.2,.8,.2),dark),0,-.4,0);p.add(g);l.push(g)}
- for(const x of[-.45,.45]){const g=new THREE.Group();g.position.set(x,1.75,0);add(g,new THREE.Mesh(new THREE.BoxGeometry(.2,.85,.2),skin),0,-.42,0);p.add(g);a.push(g)}
- p.userData={l,a,m:{sh,hm,skin}};scene.add(p);return p}
-function setLook(p,l){if(!l)return;const m=p.userData.m;m.sh.color.set(l.s);m.hm.color.set(l.h);m.skin.color.set(l.k)}
+ for(const x of[-.22,.22]){
+  const g=new THREE.Group();g.position.set(x,.8,0);
+  const upperLeg=add(g,new THREE.Mesh(new THREE.BoxGeometry(.2,.8,.2),pants),0,-.4,0);
+  const shin=add(g,new THREE.Mesh(new THREE.BoxGeometry(.16,.42,.16),skin),0,-.61,0);shin.visible=false;
+  p.add(g);l.push(g);
+ }
+ for(const x of[-.45,.45]){
+  const g=new THREE.Group();g.position.set(x,1.75,0);
+  add(g,new THREE.Mesh(new THREE.BoxGeometry(.2,.85,.2),skin),0,-.42,0);
+  const shortSleeve=add(g,new THREE.Mesh(new THREE.BoxGeometry(.235,.34,.235),sh),0,-.14,0);
+  const longSleeve=add(g,new THREE.Mesh(new THREE.BoxGeometry(.235,.78,.235),sh),0,-.39,0);
+  p.add(g);a.push({group:g,shortSleeve,longSleeve});
+ }
+ p.userData={l,a,m:{sh,hm,skin,pants},styles:{hair,spikes,fringe,sideHair,longHair,bobHair,ponyHair,braidHair,curlyHair,pixieHair,wavesHair,bunHair,afroHair,femaleHair,hood,pocket,jacket}};
+ targetScene.add(p);return p;
+}
+function setLook(p,l){
+ if(!l)return;
+ const u=p.userData,m=u.m,s=u.styles;
+ m.sh.color.set(l.s||'#2585dc');m.hm.color.set(l.h||'#2b1b12');m.skin.color.set(l.k||'#ffc38e');
+ const hs=l.hs||'classic';
+ s.spikes.visible=hs==='spiky';s.sideHair.visible=hs==='side';s.longHair.visible=hs==='long';
+ s.bobHair.visible=hs==='bob';s.ponyHair.visible=hs==='pony';s.braidHair.visible=hs==='braid';s.curlyHair.visible=hs==='curly';
+ s.pixieHair.visible=hs==='pixie';s.wavesHair.visible=hs==='waves';s.bunHair.visible=hs==='bun';s.afroHair.visible=hs==='afro';
+ s.hair.visible=hs!=='bald';s.fringe.visible=hs==='classic';
+ s.femaleHair.visible=l.g==='female';
+ const cs=l.cs||'normal';
+ s.hood.visible=cs==='hoodie';
+ if(cs==='hoodie'){const isOpen=(l.hd||'closed')==='open';s.hood.position.set(0,isOpen?1.91:2.08,-.29);s.hood.scale.set(isOpen?1.08:.98,isOpen?.92:1.18,isOpen?.9:.78);}
+ s.pocket.visible=cs==='hoodie';s.jacket.visible=cs==='jacket';
+ for(const arm of u.a){arm.shortSleeve.visible=cs==='normal';arm.longSleeve.visible=cs==='hoodie'||cs==='jacket';}
+ const ps=l.ps||'normal';
+ m.pants.color.set(l.pc||'#252b35');
+ for(const g of u.l){
+  const leg=g.children[0],shin=g.children[1];
+  if(ps==='shorts'){
+   // Şort paçası diz üstünde biter; alt bacak ten rengiyle görünür.
+   leg.scale.y=.48;leg.position.y=-.208;shin.visible=true;
+  }else{
+   leg.scale.y=1;leg.position.y=-.4;shin.visible=false;
+  }
+ }
+}
 function walk(p,moving){const u=p.userData,s=moving?Math.sin(performance.now()*.012)*.7:0,k=.3;
  u.l[0].rotation.x+=(s-u.l[0].rotation.x)*k;u.l[1].rotation.x+=(-s-u.l[1].rotation.x)*k;
  if(!u.fixed){u.a[0].rotation.x+=(-s-u.a[0].rotation.x)*k;u.a[1].rotation.x+=(s-u.a[1].rotation.x)*k}}
 
 const player=person(0x2585dc);player.position.set(0,0,6);
+// Lobi içinde seçilen görünümü anında gösteren 3D karakter önizlemesi.
+const previewScene=new THREE.Scene();previewScene.background=new THREE.Color(0x1c2b3b);
+previewScene.add(new THREE.HemisphereLight(0xffffff,0x405060,1.8));
+const previewLight=new THREE.DirectionalLight(0xffffff,2.2);previewLight.position.set(2,4,5);previewScene.add(previewLight);
+const previewCamera=new THREE.PerspectiveCamera(32,220/175,.1,50);
+const previewRenderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});previewRenderer.setPixelRatio(Math.min(devicePixelRatio,1.5));previewRenderer.setSize(440,350,false);previewRenderer.domElement.style.cssText='display:block;width:100%;height:100%;';$('avatarPreview').appendChild(previewRenderer.domElement);
+const previewAvatar=person(0x2585dc,0x2b1b12,0xffc38e,previewScene);previewAvatar.position.set(0,0,0);previewAvatar.visible=true;
+// Önizleme kamerasını modelin gerçek sınırlarına göre otomatik kadrajla.
+const previewBounds=new THREE.Box3().setFromObject(previewAvatar),previewCenter=previewBounds.getCenter(new THREE.Vector3()),previewSize=previewBounds.getSize(new THREE.Vector3());
+const previewDistance=Math.max(previewSize.y/(2*Math.tan(THREE.MathUtils.degToRad(previewCamera.fov/2))),previewSize.x/(2*Math.tan(THREE.MathUtils.degToRad(previewCamera.fov/2))*(220/175)))*1.22;
+previewCamera.position.set(previewCenter.x,previewCenter.y,previewCenter.z+previewDistance);previewCamera.lookAt(previewCenter);previewCamera.updateProjectionMatrix();
+function refreshPreview(){const l=myLook();setLook(previewAvatar,l);previewAvatar.visible=true;previewRenderer.render(previewScene,previewCamera)}
+
 const hairC=[0x2b1b12,0xc8a24a,0x111111,0x6b3a1e,0x8a4b2a,0x1a1a1a,0xd9b36a,0x3a2a1a,0x5a5a5a,0x2b1b12];
 const avCol=[0xd9534f,0x5cb85c,0xf0ad4e,0x9b59b6,0x17a2b8,0xe83e8c,0x6c757d,0x20c997,0xfd7e14,0x6610f2];
 const avatars=avCol.map((c,i)=>{const p=person(c,hairC[i]),s=seatPos(i);p.position.set(s.x,.15,s.z);p.rotation.y=A(i)+Math.PI;p.visible=false;
@@ -217,7 +396,10 @@ let G=null,L={type:['human','empty','empty','empty'],names:['','','',''],look:[n
 let me=-1,view=null,hand=[],chosen=new Set(),pend=[],started=false,okey=null;
 const DEF=[{s:'#d9534f',h:'#2b1b12',k:'#ffc38e'},{s:'#5cb85c',h:'#c8a24a',k:'#e8b48a'},{s:'#f0ad4e',h:'#111111',k:'#c68a5e'},{s:'#9b59b6',h:'#6b3a1e',k:'#ffd5b0'}];
 const cl=v=>/^#[0-9a-f]{6}$/i.test(v)?v:'#888888';
-const myLook=()=>({s:$('cs').value,h:$('ch').value,k:$('ck').value});
+const myLook=()=>({s:$('cs').value,h:$('ch').value,k:$('ck').value,pc:$('cp').value,hs:$('hairStyle').value,cs:$('shirtStyle').value,hd:$('hoodStyle').value,ps:$('pantsStyle').value,g:$('genderStyle').value});
+function updateHoodControl(){ $('hoodControl').hidden=$('shirtStyle').value!=='hoodie'; }
+for(const id of ['cs','cp','ch','ck','hairStyle','shirtStyle','hoodStyle','pantsStyle','genderStyle']){ $(id).addEventListener('input',refreshPreview); $(id).addEventListener('change',()=>{if(id==='shirtStyle')updateHoodControl();refreshPreview()}); }
+updateHoodControl();refreshPreview();
 const isW=t=>t.n>0&&okey&&t.n===okey.n&&t.c===okey.c;
 const eff=t=>t.n===0?{n:okey.n,c:okey.c}:t;
 function grp(ts){
@@ -615,10 +797,10 @@ function animate(){
   look.set(camera.position.x+Math.sin(ey)*Math.cos(p),camera.position.y+Math.sin(p),camera.position.z+Math.cos(ey)*Math.cos(p));
   camera.lookAt(look);
  }
- updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);
+ updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);if($('lobby').style.display!=='none')previewRenderer.render(previewScene,previewCamera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);const r=$('avatarPreview').getBoundingClientRect();if(r.width&&r.height){previewCamera.aspect=r.width/r.height;previewCamera.updateProjectionMatrix();previewRenderer.setSize(Math.round(r.width*2),Math.round(r.height*2),false);refreshPreview()}});
 
 /* ---------- LOBİ ve ÇEVRİMİÇİ ---------- */
 const nm=()=>($('nm').value.trim()||'Oyuncu');
@@ -635,7 +817,7 @@ $('bt').onclick=()=>{botsOn=!botsOn;$('bt').textContent='Botlar: '+(botsOn?'Aç�
 $('sf').onclick=()=>{if(RU&&RU.turn===me&&!RU.over)send({t:'shoot',target:me})};
 $('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;msg(aim?'Hedef oyuncuya tıkla (iptal için tekrar bas).':'Sıra sende.')};
 $('again').onclick=()=>{if(isHost)restart();else if(conn)conn.send({t:'again'})};
-$('exit').onclick=()=>{location.replace(location.pathname+location.search+(location.search?'&':'?')+'restart='+Date.now())};
+$('exit').onclick=()=>{location.reload()};
 $('solo').onclick=()=>{isHost=true;me=0;initL();L.names[0]=nm();L.look[0]=myLook();startGame(true)};
 $('mk').onclick=()=>{
  if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi, internetini kontrol et.';return}
@@ -647,7 +829,7 @@ $('mk').onclick=()=>{
  peer.on('connection',c=>{
   c.on('data',d=>{
    if(d.t==='join'){const s=L.type.indexOf('empty');if(G||s<0){c.send({t:'full'});return}
-    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k)}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode});lobbyBroadcast()}
+    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',hd:d.look.hd==='open'?'open':'closed',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode});lobbyBroadcast()}
    else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));onPos(d)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
   c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;
    if(G){if(G.mode==='rou'&&!botsOn)rouLeave(s);else{G.type[s]='bot';L.type[s]='empty';G.names[s]+=' (bot)';sendAll();botTick()}}else{L.type[s]='empty';L.names[s]='';lobbyBroadcast()}});
