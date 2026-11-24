@@ -731,7 +731,9 @@ function applyChess(st){view=st;me=st.seat;mode='chess';CH=st;CH.legal=legal(st.
  if(!started){started=true;$('lobby').style.display='none';showMode();zoom=.85;sit(true)}
  buildChess();
  const my=st.turn===me;msg(st.over?st.res:(my?'Senin sıran':'Sıra: '+st.names[st.turn])+(inCheck(st.P)?' — ŞAH!':''));
- $('help').innerHTML='<b>SATRANÇ</b><br>Beyaz: '+esc(st.names[0])+'<br>Siyah: '+esc(st.names[2])+'<br>Sıra: '+(st.turn===0?'Beyaz':'Siyah');
+ $('help').innerHTML=st.over
+  ?'<b style="color:#ffcf70;font-size:18px">'+(String(st.res||'').startsWith('Şah mat!')?'ŞAH MAT!':'OYUN BİTTİ')+'</b><br><b>'+esc(st.res||'Oyun sona erdi.')+'</b><br><br><b>SATRANÇ</b><br>Beyaz: '+esc(st.names[0])+'<br>Siyah: '+esc(st.names[2])
+  :'<b>SATRANÇ</b><br>Beyaz: '+esc(st.names[0])+'<br>Siyah: '+esc(st.names[2])+'<br>Sıra: '+(st.turn===0?'Beyaz':'Siyah');
  $('again').hidden=!st.over}
 function apply(st){if(st.mode==='chess'){applyChess(st);return}if(st.mode==='rou'){applyRou(st);return}mode='okey';
  view=st;me=st.seat;const ids=new Set(st.hand.map(t=>t.id));
