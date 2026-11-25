@@ -154,7 +154,7 @@ function makeCoffee(){const g=new THREE.Group();
  const white=new THREE.MeshStandardMaterial({color:0xfafafa,roughness:.22,metalness:0});
  const profile=[[0,0],[.105,0],[.13,.025],[.145,.09],[.15,.23],[.14,.32],[.135,.345],[.12,.35],[0,.35]].map(p=>new THREE.Vector2(...p));
  const mug=new THREE.Mesh(new THREE.LatheGeometry(profile,32),white);g.add(mug);
- const coffee=new THREE.Mesh(new THREE.CylinderGeometry(.127,.127,.018,32),new THREE.MeshStandardMaterial({color:0x3a1b0b,roughness:.28}));coffee.position.y=.315;g.add(coffee);g.userData.liq=coffee;
+ const coffee=new THREE.Mesh(new THREE.CylinderGeometry(.127,.127,.018,32),new THREE.MeshStandardMaterial({color:0x241006,roughness:.24}));coffee.position.y=.315;g.add(coffee);g.userData.liq=coffee;
  const rim=new THREE.Mesh(new THREE.TorusGeometry(.135,.009,10,32),white);rim.rotation.x=Math.PI/2;rim.position.y=.345;g.add(rim);
  const handle=new THREE.Mesh(new THREE.TorusGeometry(.095,.022,12,28,Math.PI*2),white);handle.position.set(.145,.19,0);g.add(handle);
  const saucer=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.018,32),white);saucer.position.y=-.012;g.add(saucer);
@@ -453,18 +453,26 @@ refreshPreview();saveProfile();
 const isW=t=>t.n>0&&okey&&t.n===okey.n&&t.c===okey.c;
 const eff=t=>t.n===0?{n:okey.n,c:okey.c}:t;
 function grp(ts){
- const w=ts.filter(isW).length,r=ts.filter(t=>!isW(t)).map(eff),L=ts.length;
- if(L<3||!r.length)return 0;
- if(L<=4&&r.every(t=>t.n===r[0].n)&&new Set(r.map(t=>t.c)).size===r.length)return r[0].n*L;
- if(L<=13&&r.every(t=>t.c===r[0].c)){
-  for(const hi of[0,1]){
-   const ns=r.map(t=>t.n===1&&hi?14:t.n).sort((a,b)=>a-b);
-   if(new Set(ns).size<ns.length)continue;
-   const gap=ns[ns.length-1]-ns[0]+1-ns.length;if(gap>w)continue;
-   const ext=w-gap,f=lo=>{const top=lo+L-1;if(lo<1||top>14)return 0;let q=0;for(let v=lo;v<=top;v++)q+=v===14?1:v;return q};
-   const best=Math.max(...Array.from({length:ext+1},(_,k)=>f(ns[0]-k)));if(best)return best}}
+ const wild=ts.filter(isW).length,real=ts.filter(t=>!isW(t)).map(eff),L=ts.length;
+ if(L<3||!real.length||L>13)return 0;
+ if(L<=4&&real.every(t=>t.n===real[0].n)&&new Set(real.map(t=>t.c)).size===real.length)return real[0].n*L;
+ if(!real.every(t=>t.c===real[0].c))return 0;
+ // Seri 1-13 arasında döngüseldir: 12-13-1 ve 13-1-2 geçerlidir.
+ for(let start=1;start<=13;start++){
+  for(let len=L;len<=Math.min(13,L+wild);len++){
+   const slots=new Set();let points=0,ok=true;
+   for(const t of real){let off=(t.n-start+13)%13;if(off>=len||slots.has(off)){ok=false;break}slots.add(off);points+=t.n}
+   if(!ok)continue;
+   const missing=len-slots.size;if(missing>wild)continue;
+   let left=wild-missing;
+   // Okey taşları kalan boşluklara yerleşir; puan hesabında döngüdeki sayı kullanılır.
+   for(let k=0;k<len&&left>0;k++)if(!slots.has(k)){points+=((start-1+k)%13)+1;left--}
+   return points;
+  }
+ }
  return 0}
-const isPair=ts=>ts.length===2&&(isW(ts[0])||isW(ts[1])||(eff(ts[0]).n===eff(ts[1]).n&&eff(ts[0]).c===eff(ts[1]).c));
+const isPairJoker=t=>isW(t)||t.n===0;
+const isPair=ts=>ts.length===2&&(isPairJoker(ts[0])||isPairJoker(ts[1])||(eff(ts[0]).n===eff(ts[1]).n&&eff(ts[0]).c===eff(ts[1]).c));
 function finish(w){G.over=true;G.win=w;
  G.res=[0,1,2,3].map(i=>{if(i===w)return G.names[i]+': BİTİRDİ 🎉';
   const sum=G.hands[i].reduce((a,t)=>a+(isW(t)?30:eff(t).n),0);return G.names[i]+': '+(G.omode[i]?sum:202)+' ceza'})}
@@ -902,13 +910,36 @@ $('gr').onclick=()=>{const ts=hand.filter(t=>chosen.has(t.id));
 $('op').onclick=()=>{send({t:'open',groups:pend});pend=[];renderHand()};
 $('cl').onclick=()=>{pend=[];chosen.clear();renderHand();buttons()};
 $('sd').onclick=()=>{if(!okey)return;let rest=[...hand],out=[];const take=g=>{g.forEach(t=>rest.splice(rest.indexOf(t),1));out.push(...g)};
- for(let c=0;c<4;c++){const ts=rest.filter(t=>!isW(t)&&eff(t).c===c).sort((a,b)=>eff(a).n-eff(b).n);let run=[];
-  const fl=()=>{if(run.length>=3)take(run);run=[]};
-  for(const t of ts){const n=eff(t).n;if(run.length&&n===eff(run[run.length-1]).n)continue;if(run.length&&n!==eff(run[run.length-1]).n+1)fl();run.push(t)}fl()}
+ // Her renk için en uzun geçerli döngüsel serileri önce bul; 13'ten sonra 1 gelir.
+ for(let c=0;c<4;c++){
+  let searching=true;
+  while(searching){searching=false;let best=null;
+   for(let len=13;len>=3&&!best;len--){
+    for(let start=1;start<=13&&!best;start++){
+     const run=[];let valid=true;
+     for(let k=0;k<len;k++){const n=((start-1+k)%13)+1;const tile=rest.find(t=>!isW(t)&&eff(t).c===c&&eff(t).n===n&&!run.includes(t));if(!tile){valid=false;break}run.push(tile)}
+     if(valid&&grp(run)>0)best=run;
+    }
+   }
+   if(best){take(best);searching=true}
+  }
+ }
  for(let n=1;n<=13;n++){const seen=new Set(),u=rest.filter(t=>!isW(t)&&eff(t).n===n&&!seen.has(eff(t).c)&&seen.add(eff(t).c));if(u.length>=3)take(u)}
  rest.sort((a,b)=>(isW(a)-isW(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n);hand=[...out,...rest];renderHand()};
-$('cf').onclick=()=>{if(!okey)return;let rest=[...hand].sort((a,b)=>eff(a).c-eff(b).c||eff(a).n-eff(b).n),out=[];
- for(let i=0;i<rest.length-1;){const a=rest[i],b=rest[i+1];if(!isW(a)&&!isW(b)&&eff(a).n===eff(b).n&&eff(a).c===eff(b).c){out.push(a,b);rest.splice(i,2)}else i++}
+$('cf').onclick=()=>{if(!okey)return;let rest=[...hand].sort((a,b)=>(isW(a)-isW(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n),out=[];
+ const takePair=(a,b)=>{out.push(a,b);rest.splice(rest.indexOf(a),1);rest.splice(rest.indexOf(b),1)};
+ // Önce aynı renk ve sayıdaki normal taş çiftlerini bul.
+ for(let i=0;i<rest.length;i++){
+  const a=rest[i];if(isPairJoker(a))continue;
+  const b=rest.find((t,j)=>j>i&&!isPairJoker(t)&&eff(t).n===eff(a).n&&eff(t).c===eff(a).c);
+  if(b){takePair(a,b);i=-1}
+ }
+ // Sahte yıldız jokeri ve okey aynı şekilde joker kabul edilir:
+ // sahte+sahte, okey+okey ve sahte+okey çift olabilir.
+ while(rest.filter(isPairJoker).length>=2){const js=rest.filter(isPairJoker);takePair(js[0],js[1]);}
+ // Eşleşmemiş jokerleri kalan normal taşlarla çift yap.
+ while(rest.some(isPairJoker)&&rest.some(t=>!isPairJoker(t)))takePair(rest.find(isPairJoker),rest.find(t=>!isPairJoker(t)));
+ rest.sort((a,b)=>(isPairJoker(a)-isPairJoker(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n);
  hand=[...out,...rest];renderHand()};
 
 /* ---------- OTURMA ve KAMERA ---------- */
