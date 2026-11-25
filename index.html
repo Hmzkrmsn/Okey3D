@@ -68,9 +68,7 @@ button:disabled{opacity:.35;cursor:default}
 <button id="ds" disabled>Taş at</button>
 <button id="sd">Seri diz</button>
 <button id="cf">Çift diz</button>
-<button id="gr" disabled>Grupla</button>
 <button id="op" disabled>Aç</button>
-<button id="cl">Temizle</button>
 <button id="sit">Otur / Kalk (E)</button>
 <button id="again" hidden>Tekrar oyna</button>
 <button id="exit">Çık</button>
@@ -686,7 +684,7 @@ function buttons(){
  if(!view)return;$('again').hidden=!view.over;const my=view.turn===me&&!view.over,dr=view.drawn,prev=view.top[(me+3)%4];
  $('dp').disabled=!(my&&!dr);$('dd').disabled=!(my&&!dr&&prev);
  $('dd').innerHTML='Soldan al'+(prev?` (<span style="color:${prev.n?TC[prev.c]==='#292929'?'#fff':TC[prev.c]:'#fff'}">${tl(prev)} ${CN[prev.c]}</span>)`:'');
- $('ds').disabled=!(my&&dr&&chosen.size===1);$('gr').disabled=!(my&&dr&&chosen.size>=2);$('op').disabled=!(my&&dr&&pend.length>0);
+ $('ds').disabled=!(my&&dr&&chosen.size===1);$('op').disabled=!(my&&dr&&pend.length>0);
  const pr=pend.every(g=>g.length===2);let pts=0;if(!pr)pend.forEach(g=>pts+=grp(g.map(id=>hand.find(t=>t.id===id))));
  const info=pend.length?' | '+pend.length+(pr?' çift':' grup, '+pts+' puan')+(view.omode[me]?'':pr?' (açmak için 5 çift)':' (açmak için 101)'):'';
  msg(view.over?(view.res||['Oyun bitti']).join('  |  '):my?(dr?'Sıra sende: grupla/aç ya da bir taş at.'+info:'Sıra sende: taş çek.'):'Sıra: '+view.names[view.turn]);
@@ -932,11 +930,7 @@ function apply(st){if(st.mode==='chess'){applyChess(st);return}if(st.mode==='rou
 $('dp').onclick=()=>send({t:'draw',src:'pile'});
 $('dd').onclick=()=>send({t:'draw',src:'disc'});
 $('ds').onclick=()=>{if(chosen.size===1){send({t:'discard',id:[...chosen][0]});chosen.clear()}};
-$('gr').onclick=()=>{const ts=hand.filter(t=>chosen.has(t.id));
- if(!(ts.length===2?isPair(ts):grp(ts)>0)){msg('Bu taşlar geçerli bir per, seri ya da çift değil.');return}
- pend.push(ts.map(t=>t.id));chosen.clear();renderHand();buttons()};
 $('op').onclick=()=>{send({t:'open',groups:pend});pend=[];renderHand()};
-$('cl').onclick=()=>{pend=[];chosen.clear();renderHand();buttons()};
 $('sd').onclick=()=>{if(!okey)return;autoGroupMode='series';autoGroupStats={tiles:0,groups:0,pairs:0,points:0};autoGroupGroups=[];let rest=[...hand],out=[];const take=g=>{g.forEach(t=>rest.splice(rest.indexOf(t),1));out.push(...g);autoGroupGroups.push([...g]);autoGroupStats.tiles+=g.length;autoGroupStats.groups++;autoGroupStats.points+=grp(g)};
  // Her renk için en uzun geçerli döngüsel serileri önce bul; 13'ten sonra 1 gelir.
  for(let c=0;c<4;c++){
