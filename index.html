@@ -956,7 +956,7 @@ $('sd').onclick=()=>{if(!okey)return;autoGroupMode='series';autoGroupStats={tile
   }
  }
  for(let n=1;n<=13;n++){const seen=new Set(),u=rest.filter(t=>!isW(t)&&eff(t).n===n&&!seen.has(eff(t).c)&&seen.add(eff(t).c));if(u.length>=3)take(u)}
- rest.sort((a,b)=>(isW(a)-isW(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n);hand=[...out,...rest];updateAutoInfo();renderHand()};
+ rest.sort((a,b)=>(isW(a)-isW(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n);hand=[...out,...rest];pend=autoGroupGroups.map(g=>g.map(t=>t.id));updateAutoInfo();renderHand();buttons()};
 $('cf').onclick=()=>{if(!okey)return;autoGroupMode='pairs';autoGroupStats={tiles:0,groups:0,pairs:0,points:0};autoGroupGroups=[];let rest=[...hand].sort((a,b)=>(isW(a)-isW(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n),out=[];
  const takePair=(a,b)=>{out.push(a,b);autoGroupGroups.push([a,b]);rest.splice(rest.indexOf(a),1);rest.splice(rest.indexOf(b),1);autoGroupStats.tiles+=2;autoGroupStats.groups++;autoGroupStats.pairs++};
  // Önce aynı renk ve sayıdaki normal taş çiftlerini bul.
@@ -971,7 +971,7 @@ $('cf').onclick=()=>{if(!okey)return;autoGroupMode='pairs';autoGroupStats={tiles
  // Eşleşmemiş jokerleri kalan normal taşlarla çift yap.
  while(rest.some(isPairJoker)&&rest.some(t=>!isPairJoker(t)))takePair(rest.find(isPairJoker),rest.find(t=>!isPairJoker(t)));
  rest.sort((a,b)=>(isPairJoker(a)-isPairJoker(b))||eff(a).c-eff(b).c||eff(a).n-eff(b).n);
- hand=[...out,...rest];updateAutoInfo();renderHand()};
+ hand=[...out,...rest];pend=autoGroupGroups.map(g=>g.map(t=>t.id));updateAutoInfo();renderHand();buttons()};
 
 /* ---------- OTURMA ve KAMERA ---------- */
 let zoom=1;addEventListener('wheel',e=>{if(seated)zoom=Math.max(.55,Math.min(1.3,zoom+e.deltaY*.0008))},{passive:true});
