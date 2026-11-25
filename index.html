@@ -35,6 +35,9 @@ button:disabled{opacity:.35;cursor:default}
 .box select{padding:7px 9px;margin:4px;border:0;border-radius:7px;background:#fff;color:#182536;font-size:13px}
 #modes{margin:6px 0 10px}#modes button{background:#3a4a5a}#modes button.on{background:#287ac0;outline:2px solid #9ed5ff}
 #lt{margin:12px 0;color:#9ed5ff;min-height:20px;white-space:pre-line}
+
+/* İstenen iki kontrolü gizle; diğer butonların HTML ve işlevleri aynen kalsın. */
+#gr, #cl { display: none !important; }
 </style>
 </head>
 <body>
@@ -68,7 +71,9 @@ button:disabled{opacity:.35;cursor:default}
 <button id="ds" disabled>Taş at</button>
 <button id="sd">Seri diz</button>
 <button id="cf">Çift diz</button>
+<button id="gr" disabled>Grupla</button>
 <button id="op" disabled>Aç</button>
+<button id="cl">Temizle</button>
 <button id="sit">Otur / Kalk (E)</button>
 <button id="again" hidden>Tekrar oyna</button>
 <button id="exit">Çık</button>
