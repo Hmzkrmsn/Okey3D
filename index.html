@@ -40,6 +40,7 @@ button:disabled{opacity:.35;cursor:default}
 #chatLog{height:145px;overflow:auto;text-align:left;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:8px}
 #chatRow{display:flex;gap:5px}#chatInput{min-width:0;flex:1;padding:9px;border:0;border-radius:7px}#chatSend{margin:0;padding:8px 12px}
 #voiceBtn{background:#267b58}#voiceBtn.off{background:#7d3940}
+#voiceSensitivity{display:flex;align-items:center;gap:7px;font-size:12px;color:#e7f2ff;margin:5px 0 8px}#voiceSensitivity input{width:105px;accent-color:#56a8ed}#voiceSensitivity output{min-width:18px;text-align:center}
 
 /* İstenen iki kontrolü gizle; diğer butonların HTML ve işlevleri aynen kalsın. */
 #gr, #cl { display: none !important; }
@@ -81,6 +82,7 @@ button:disabled{opacity:.35;cursor:default}
 <button id="cl">Temizle</button>
 <button id="sit">Otur / Kalk (E)</button>
 <button id="voiceBtn" class="off" title="V tuşu">Ses: Kapalı (V)</button>
+<label id="voiceSensitivity" title="Ağız hareketi için mikrofon hassasiyeti">Ses hassasiyeti <input id="voiceGain" type="range" min="1" max="10" value="6" step="1"><output id="voiceGainValue">6</output></label>
 <button id="again" hidden>Tekrar oyna</button>
 <button id="exit">Çık</button>
 <button id="sf" style="display:none" disabled>Kendine ateş et</button>
@@ -1010,15 +1012,18 @@ function sitToggle(){
 $('sit').onclick=sitToggle;
 const keys={};
 let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;const voiceMeters=new Map();
-function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.72;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.fftSize),speaking:false});}catch(e){}}
-function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d}const level=Math.sqrt(sum/v.data.length);const threshold=v.speaking?.010:.014;v.speaking=level>threshold;const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=v.speaking;}}
+let voiceSensitivity=6;
+$('voiceGain').addEventListener('input',()=>{voiceSensitivity=Number($('voiceGain').value);$('voiceGainValue').textContent=voiceSensitivity});
+function voiceThreshold(){return .024-(voiceSensitivity*.0018)}
+function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=512;an.smoothingTimeConstant=.18;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.fftSize),speaking:false});}catch(e){}}
+function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0,peak=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d;peak=Math.max(peak,Math.abs(d))}const rms=Math.sqrt(sum/v.data.length),threshold=voiceThreshold()*(v.speaking?.78:1);v.speaking=rms>threshold&&peak>threshold*1.45;const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=v.speaking;}}
 function chatLine(name,text){const log=$('chatLog');log.textContent+=(log.textContent?'\n':'')+name+': '+text;log.scrollTop=log.scrollHeight}
 function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;const packet={t:'chat',name:nm()||'Oyuncu',text};chatLine('Sen',text);if(isHost)conns.forEach(c=>c&&c.send(packet));else if(conn)conn.send(packet);input.value=''}
 $('chatSend').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}if(e.key==='Escape'){$('chatInput').blur()}});
 function stopVoice(){voiceOn=false;if(localVoice){localVoice.getTracks().forEach(t=>t.stop());localVoice=null}voiceCalls.forEach(c=>{try{c.close()}catch{}});voiceCalls=[];$('voiceBtn').textContent='Ses: Kapalı (V)';$('voiceBtn').classList.add('off')}
-async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:true});meterStream(localVoice,me);voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
+async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1,sampleRate:48000}});meterStream(localVoice,me);voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
 $('voiceBtn').onclick=toggleVoice;
-function watchVoice(call){call.on('stream',stream=>{const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=document.getElementById('remoteVoice');if(!audio){audio=document.createElement('audio');audio.id='remoteVoice';audio.autoplay=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$('remoteVoice');if(a)a.srcObject=null});return call}
+function watchVoice(call){const audioId='remoteVoice_'+String(call.peer||Math.random()).replace(/[^a-zA-Z0-9_-]/g,'_');call.on('stream',stream=>{const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=$(audioId);if(!audio){audio=document.createElement('audio');audio.id=audioId;audio.autoplay=true;audio.playsInline=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$(audioId);if(a){a.pause();a.srcObject=null;a.remove()}});return call}
 function handleVoiceCall(call){call.answer(voiceOn?localVoice:undefined);watchVoice(call)}
 function receiveChat(d){chatLine(d.name||'Oyuncu',d.text||'')}
 addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle();if(k==='v'&&!e.repeat)toggleVoice()});
@@ -1073,7 +1078,7 @@ function animate(){
   camera.lookAt(look);
  }
  // Satrançta kafa kamerayı takip etmez; diğer modlarda bakış yönüne yumuşakça döner.
- if(mode!=='chess'){const dx=look.x-camera.position.x,dy=look.y-camera.position.y,dz=look.z-camera.position.z,worldYaw=Math.atan2(dx,dz),rel=((worldYaw-player.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;player.userData.head.rotation.y+=(Math.max(-.85,Math.min(.85,rel))-player.userData.head.rotation.y)*.16;const targetPitch=Math.max(-.42,Math.min(.42,Math.atan2(dy,Math.hypot(dx,dz))));player.userData.head.rotation.x+=(targetPitch-player.userData.head.rotation.x)*.16;}else{player.userData.head.rotation.y*=.84;player.userData.head.rotation.x*=.84;}
+ if(mode!=='chess'){const dx=look.x-camera.position.x,dy=look.y-camera.position.y,dz=look.z-camera.position.z,worldYaw=Math.atan2(dx,dz),rel=((worldYaw-player.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI,targetYaw=-rel;player.userData.head.rotation.y+=(Math.max(-.85,Math.min(.85,targetYaw))-player.userData.head.rotation.y)*.16;const targetPitch=Math.max(-.42,Math.min(.42,Math.atan2(dy,Math.hypot(dx,dz))));player.userData.head.rotation.x+=(targetPitch-player.userData.head.rotation.x)*.16;}else{player.userData.head.rotation.y*=.84;player.userData.head.rotation.x*=.84;}
  updateVoiceMouths();player.userData.mouth.scale.y+=((player.userData.speaking?.58:.08)-player.userData.mouth.scale.y)*.24;
  updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);if($('lobby').style.display!=='none')previewRenderer.render(previewScene,previewCamera);
 }
