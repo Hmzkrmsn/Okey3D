@@ -8,7 +8,7 @@
 *{box-sizing:border-box}
 body{margin:0;overflow:hidden;font-family:Arial,sans-serif;background:#182536}
 #ui,#help{position:fixed;top:12px;background:#182536ee;color:#fff;padding:12px;border-radius:10px;z-index:5;font-size:13px;line-height:1.6}
-#ui{left:12px}#help{right:12px;text-align:right}
+#ui{left:12px}#help{display:none}
 #tip{color:#9ed5ff}
 #game{position:fixed;bottom:0;left:0;width:100%;background:linear-gradient(transparent,#101923 25%);padding:35px 12px 12px;z-index:5;color:#fff}
 #tiles{display:flex;gap:5px;overflow-x:auto;justify-content:center;padding:14px 8px 6px}
@@ -23,6 +23,7 @@ button{border:0;border-radius:8px;padding:10px 14px;margin:3px;background:#287ac
 button:disabled{opacity:.35;cursor:default}
 #tea{background:#b8561a}#drinkCoffee{background:#f1f1f1;color:#30251d}#drinkCola{background:#a51f2d}#drinkTea{background:#b8561a}#pieceName{min-height:18px;text-align:center;color:#ffe3a6;font-weight:bold;font-size:14px}
 #status{text-align:center;font-size:14px;color:#d6eaff}
+#okeyInfo{text-align:center;margin:4px 0;color:#ffe3a6;font-size:14px;font-weight:bold}
 #myHealth{display:none;text-align:center;margin:5px 0 2px;font-size:21px;font-weight:bold;color:#ff7180;text-shadow:0 2px 5px #000}
 #lobby{position:fixed;inset:0;z-index:10;background:#182536f2;display:flex;align-items:center;justify-content:center;color:#fff}
 .box{width:min(360px,92vw);text-align:center}
@@ -35,6 +36,10 @@ button:disabled{opacity:.35;cursor:default}
 .box select{padding:7px 9px;margin:4px;border:0;border-radius:7px;background:#fff;color:#182536;font-size:13px}
 #modes{margin:6px 0 10px}#modes button{background:#3a4a5a}#modes button.on{background:#287ac0;outline:2px solid #9ed5ff}
 #lt{margin:12px 0;color:#9ed5ff;min-height:20px;white-space:pre-line}
+#chatPanel{position:fixed;right:14px;top:12px;bottom:auto;width:min(320px,calc(100vw - 28px));z-index:8;background:#102030ee;color:#fff;border:1px solid #54718b;border-radius:10px;padding:10px;display:block}
+#chatLog{height:145px;overflow:auto;text-align:left;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:8px}
+#chatRow{display:flex;gap:5px}#chatInput{min-width:0;flex:1;padding:9px;border:0;border-radius:7px}#chatSend{margin:0;padding:8px 12px}
+#voiceBtn{background:#267b58}#voiceBtn.off{background:#7d3940}
 
 /* İstenen iki kontrolü gizle; diğer butonların HTML ve işlevleri aynen kalsın. */
 #gr, #cl { display: none !important; }
@@ -75,6 +80,7 @@ button:disabled{opacity:.35;cursor:default}
 <button id="op" disabled>Aç</button>
 <button id="cl">Temizle</button>
 <button id="sit">Otur / Kalk (E)</button>
+<button id="voiceBtn" class="off" title="V tuşu">Ses: Kapalı (V)</button>
 <button id="again" hidden>Tekrar oyna</button>
 <button id="exit">Çık</button>
 <button id="sf" style="display:none" disabled>Kendine ateş et</button>
@@ -83,8 +89,10 @@ button:disabled{opacity:.35;cursor:default}
 <button id="drinkTea">🍵 Çay iste</button>
 <button id="drinkCoffee">☕ Kahve iste</button>
 </div>
+<div id="okeyInfo" aria-live="polite" style="display:none"></div>
 <div id="autoInfo" aria-live="polite"><span id="autoTotal">Oto gruplanan: 0 taş</span><span id="autoPairs">Çift: 0 / 5 çift</span></div>
 </div>
+<div id="chatPanel"><div id="chatLog" aria-live="polite"></div><div id="chatRow"><input id="chatInput" maxlength="240" placeholder="Mesajını yaz..."><button id="chatSend">Gönder</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="module">
@@ -645,7 +653,7 @@ function fillRack(i,items){
   rowItems.forEach((t,k)=>{
    const sel=t&&chosen.has(t.id),pd=t&&pend.some(gr=>gr.includes(t.id));
    const inPer=t&&(pd||groupedIds.has(t.id));
-   const mats=t?[0,1,2,3,4,5].map(f=>f===4?new THREE.MeshStandardMaterial({map:tex(t,isW(t)||t.n===0),emissive:inPer?0x2a6aa8:0x000000}):backMat):backMat;
+   const mats=t?[0,1,2,3,4,5].map(f=>f===4?(isW(t)?new THREE.MeshStandardMaterial({color:0xe0cfa0,emissive:inPer?0x2a6aa8:0x000000}):new THREE.MeshStandardMaterial({map:tex(t,t.n===0),emissive:inPer?0x2a6aa8:0x000000})):backMat):backMat;
    const m=new THREE.Mesh(new THREE.BoxGeometry(tileW,.19,.065),mats);
    // Ön sıra alçak kanala, arka sıra ayrı yüksek basamağa oturur.
    // Arka taşlar hem daha geride hem daha yukarıda durarak gerçek iki kat görünümü verir.
@@ -909,6 +917,7 @@ function showMode(){const c=mode==='chess',r=mode==='rou',o=mode==='okey';chessG
  $('sf').style.display=$('sa').style.display=r?'':'none';
  $('myHealth').style.display=r?'block':'none';
  $('autoInfo').style.display=o?'flex':'none';
+ $('okeyInfo').style.display=o?'block':'none';
  $('pieceName').textContent='';$('pieceName').style.display=c?'block':'none'}
 function applyChess(st){view=st;me=st.seat;mode='chess';CH=st;CH.legal=legal(st.P);selSq=-1;
  setLook(player,st.look[me]);for(let i=0;i<4;i++){if(i!==me)setLook(avatars[i],st.look[i]);avatars[i].visible=i!==me&&['human','bot'].includes(st.type[i])}
@@ -925,7 +934,8 @@ function apply(st){if(st.mode==='chess'){applyChess(st);return}if(st.mode==='rou
  for(const id of[...chosen])if(!ids.has(id))chosen.delete(id);pend=pend.filter(g=>g.every(id=>ids.has(id)));
  okey={n:st.ind.n%13+1,c:st.ind.c};
  setLook(player,st.look[me]);buildMelds(st);for(let i=0;i<4;i++)if(i!==me)setLook(avatars[i],st.look[i]);
- $('help').innerHTML=`<b>101 OKEY</b><br>Gösterge: <b style="color:${TC[st.ind.c]==='#292929'?'#fff':TC[st.ind.c]}">${st.ind.n} ${CN[st.ind.c]}</b><br>Okey: <b>${okey.n} ${CN[okey.c]}</b><br>Destede ${st.pile} taş`;
+ $('help').innerHTML=`<b>101 OKEY</b><br>Destede ${st.pile} taş`;
+ $('okeyInfo').textContent=`Okey: ${okey.n} ${CN[okey.c]}`;
  if(!started){started=true;$('lobby').style.display='none';showMode();sit(true)}
  buildCenter(st);
  for(let i=0;i<4;i++){const t=st.top[i];discMesh[i].visible=!!t;if(t)discMesh[i].material[2]=new THREE.MeshStandardMaterial({map:tex(t,(okey&&t.n===okey.n&&t.c===okey.c)||t.n===0)});
@@ -989,7 +999,17 @@ function sitToggle(){
 }
 $('sit').onclick=sitToggle;
 const keys={};
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle()});
+let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;
+function chatLine(name,text){const log=$('chatLog');log.textContent+=(log.textContent?'\n':'')+name+': '+text;log.scrollTop=log.scrollHeight}
+function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;const packet={t:'chat',name:nm()||'Oyuncu',text};chatLine('Sen',text);if(isHost)conns.forEach(c=>c&&c.send(packet));else if(conn)conn.send(packet);input.value=''}
+$('chatSend').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}if(e.key==='Escape'){$('chatInput').blur()}});
+function stopVoice(){voiceOn=false;if(localVoice){localVoice.getTracks().forEach(t=>t.stop());localVoice=null}voiceCalls.forEach(c=>{try{c.close()}catch{}});voiceCalls=[];$('voiceBtn').textContent='Ses: Kapalı (V)';$('voiceBtn').classList.add('off')}
+async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:true});voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
+$('voiceBtn').onclick=toggleVoice;
+function watchVoice(call){call.on('stream',stream=>{let audio=document.getElementById('remoteVoice');if(!audio){audio=document.createElement('audio');audio.id='remoteVoice';audio.autoplay=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$('remoteVoice');if(a)a.srcObject=null});return call}
+function handleVoiceCall(call){call.answer(voiceOn?localVoice:undefined);watchVoice(call)}
+function receiveChat(d){chatLine(d.name||'Oyuncu',d.text||'')}
+addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle();if(k==='v'&&!e.repeat)toggleVoice()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 let drag=false,lx=0,ly=0;
 let sx=0,sy=0;const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
@@ -1057,7 +1077,7 @@ $('bt').onclick=()=>{botsOn=!botsOn;$('bt').textContent='Botlar: '+(botsOn?'Aç�
 $('sf').onclick=()=>{if(RU&&RU.turn===me&&!RU.over)send({t:'shoot',target:me})};
 $('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;msg(aim?'Hedef oyuncuya tıkla (iptal için tekrar bas).':'Sıra sende.')};
 $('again').onclick=()=>{if(isHost)restart();else if(conn)conn.send({t:'again'})};
-$('exit').onclick=()=>{location.reload()};
+$('exit').onclick=()=>{stopVoice();location.reload()};
 $('solo').onclick=()=>{isHost=true;me=0;initL();L.names[0]=nm();L.look[0]=myLook();startGame(true)};
 $('mk').onclick=()=>{
  if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi, internetini kontrol et.';return}
@@ -1065,12 +1085,13 @@ $('mk').onclick=()=>{
  $('lt').textContent='Oda kuruluyor...';
  peer=new Peer('okey3d-'+code);
  peer.on('error',e=>$('lt').textContent='Bağlantı hatası: '+e.type);
- peer.on('open',()=>{lobbyBroadcast();$('go').hidden=false});
+ peer.on('call',handleVoiceCall);
+ peer.on('open',()=>{hostPeerId=peer.id;lobbyBroadcast();$('go').hidden=false});
  peer.on('connection',c=>{
   c.on('data',d=>{
    if(d.t==='join'){const s=L.type.indexOf('empty');if(G||s<0){c.send({t:'full'});return}
-    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode});lobbyBroadcast()}
-   else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));onPos(d)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
+    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode,hostPeerId:peer.id});lobbyBroadcast()}
+   else if(d.t==='chat'){receiveChat(d);conns.forEach(o=>o&&o!==c&&o.send(d))}else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));onPos(d)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
   c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;
    if(G){if(G.mode==='rou'&&!botsOn)rouLeave(s);else{G.type[s]='bot';L.type[s]='empty';G.names[s]+=' (bot)';sendAll();botTick()}}else{L.type[s]='empty';L.names[s]='';lobbyBroadcast()}});
  });
@@ -1081,15 +1102,17 @@ $('jn').onclick=()=>{
  const c=$('cd').value.trim().toUpperCase();if(c.length<4){$('lt').textContent='4 harfli oda kodunu yaz.';return}
  $('lt').textContent='Bağlanıyor...';peer=new Peer();
  peer.on('error',e=>$('lt').textContent='Bağlantı hatası: '+e.type);
+ peer.on('call',handleVoiceCall);
  peer.on('open',()=>{conn=peer.connect('okey3d-'+c,{reliable:true});
-  conn.on('open',()=>conn.send({t:'join',name:nm(),look:myLook()}));
+  conn.on('open',()=>conn.send({t:'join',name:nm(),look:myLook(),peerId:peer.id}));
   conn.on('data',d=>{
-   if(d.t==='st')apply(d);
+   if(d.t==='chat')receiveChat(d);
+   else if(d.t==='st')apply(d);
    else if(d.t==='tea'||d.t==='sip')onNet(d);
    else if(d.t==='pos')onPos(d);
    else if(d.t==='lobby')$('lt').textContent=d.txt+'\n\nOda sahibinin başlatması bekleniyor...';
    else if(d.t==='full')$('lt').textContent='Oda dolu ya da oyun başlamış.';
-   else if(d.t==='seat'){me=d.seat;mode=d.mode||'okey'}});
+   else if(d.t==='seat'){me=d.seat;mode=d.mode||'okey';hostPeerId=d.hostPeerId||('okey3d-'+c)}});
   conn.on('close',()=>msg('Oda ile bağlantı koptu.'))});
 };
 </script>
