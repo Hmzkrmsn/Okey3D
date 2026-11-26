@@ -180,9 +180,17 @@ html.mobile-block #mobileNotice{display:flex}
 </div>
 <div id="chatPanel"><div id="chatLog" aria-live="polite"></div><div id="chatRow"><input id="chatInput" maxlength="240" placeholder="Mesajını yaz..."><button id="chatSend">Gönder</button></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+// Telefon engellendiyse oyun motorunu ve ağ kütüphanesini hiç yükleme.
+if (!document.documentElement.classList.contains('mobile-block')) {
+  await new Promise((resolve, reject) => {
+    const peerScript = document.createElement('script');
+    peerScript.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
+    peerScript.onload = resolve;
+    peerScript.onerror = () => reject(new Error('PeerJS yüklenemedi'));
+    document.head.appendChild(peerScript);
+  });
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 const $=id=>document.getElementById(id);
 const msg=t=>$('status').textContent=t;
 let mode='okey',botsOn=true;const tbl=[];
@@ -1239,6 +1247,7 @@ $('jn').onclick=()=>{
    else if(d.t==='seat'){me=d.seat;mode=d.mode||'okey';hostPeerId=d.hostPeerId||('okey3d-'+c)}});
   conn.on('close',()=>msg('Oda ile bağlantı koptu.'))});
 };
+} // Telefonlarda oyun kodu çalıştırılmaz.
 </script>
 </body>
 </html>
