@@ -267,7 +267,16 @@ function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
  // Yüz ayrıntıları
  for(const x of[-.14,.14])add(head,new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),blk),x,.03,.36);
  add(head,new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.07),skin),0,-.06,.41);
- const mouth=add(head,new THREE.Mesh(new THREE.BoxGeometry(.15,.035,.04),lip),0,-.17,.37);
+ // Detaylı ama küçük ağız: mevcut ses animasyonu bu pivotun Y ölçeğini hareket ettirir.
+ const mouth=new THREE.Group();mouth.position.set(0,-.17,.37);mouth.scale.y=.08;head.add(mouth);
+ const mouthInner=new THREE.Mesh(new THREE.SphereGeometry(.078,16,10),new THREE.MeshStandardMaterial({color:0x351016,roughness:.9}));
+ mouthInner.scale.set(1,.34,.22);mouthInner.position.z=.004;mouth.add(mouthInner);
+ const mouthRim=new THREE.Mesh(new THREE.TorusGeometry(.066,.012,8,24),lip);mouthRim.position.z=.018;mouth.add(mouthRim);
+ const teeth=new THREE.Mesh(new THREE.BoxGeometry(.088,.018,.012),new THREE.MeshStandardMaterial({color:0xfff0dc,roughness:.55}));
+ teeth.position.set(0,.012,.021);mouth.add(teeth);
+ const tongue=new THREE.Mesh(new THREE.SphereGeometry(.038,12,8),new THREE.MeshStandardMaterial({color:0xa83d50,roughness:.85}));
+ tongue.scale.set(1,.30,.18);tongue.position.set(0,-.025,.02);mouth.add(tongue);
+ mouth.traverse(o=>{if(o.isMesh)o.castShadow=true;});
  // Üst kıyafet ekleri: kapüşonlu ve ceket için ayrı, görünür ayrıntılar.
  const clothes=new THREE.Group();p.add(clothes);
  const detailMat=new THREE.MeshStandardMaterial({color:0xd8e3eb,roughness:.72});
@@ -1001,8 +1010,8 @@ function sitToggle(){
 $('sit').onclick=sitToggle;
 const keys={};
 let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;const voiceMeters=new Map();
-function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=512;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.frequencyBinCount)});}catch(e){}}
-function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d}const level=Math.sqrt(sum/v.data.length);const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=level>.025;}}
+function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.72;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.fftSize),speaking:false});}catch(e){}}
+function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d}const level=Math.sqrt(sum/v.data.length);const threshold=v.speaking?.010:.014;v.speaking=level>threshold;const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=v.speaking;}}
 function chatLine(name,text){const log=$('chatLog');log.textContent+=(log.textContent?'\n':'')+name+': '+text;log.scrollTop=log.scrollHeight}
 function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;const packet={t:'chat',name:nm()||'Oyuncu',text};chatLine('Sen',text);if(isHost)conns.forEach(c=>c&&c.send(packet));else if(conn)conn.send(packet);input.value=''}
 $('chatSend').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}if(e.key==='Escape'){$('chatInput').blur()}});
@@ -1043,7 +1052,7 @@ function updateAvatars(){for(let i=0;i<avatars.length;i++){if(i===me)continue;co
  else{const dx=u.tx-av.position.x,dz=u.tz-av.position.z,mv=Math.hypot(dx,dz)>.03;
   av.position.x+=dx*.3;av.position.z+=dz*.3;av.position.y+=(0-av.position.y)*.3;if(mv)av.rotation.y=u.tr}
  u.head.rotation.y+=((Number.isFinite(u.hy)?u.hy:0)-u.head.rotation.y)*.18;u.head.rotation.x+=((Number.isFinite(u.hx)?u.hx:0)-u.head.rotation.x)*.18;
- u.mouth.scale.y+=((u.speaking?2.4:1)-u.mouth.scale.y)*.32;}}
+ u.mouth.scale.y+=((u.speaking?.58:.08)-u.mouth.scale.y)*.24;}}
 const look=new THREE.Vector3();
 function animate(){
  requestAnimationFrame(animate);
@@ -1065,7 +1074,7 @@ function animate(){
  }
  // Satrançta kafa kamerayı takip etmez; diğer modlarda bakış yönüne yumuşakça döner.
  if(mode!=='chess'){const dx=look.x-camera.position.x,dy=look.y-camera.position.y,dz=look.z-camera.position.z,worldYaw=Math.atan2(dx,dz),rel=((worldYaw-player.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;player.userData.head.rotation.y+=(Math.max(-.85,Math.min(.85,rel))-player.userData.head.rotation.y)*.16;const targetPitch=Math.max(-.42,Math.min(.42,Math.atan2(dy,Math.hypot(dx,dz))));player.userData.head.rotation.x+=(targetPitch-player.userData.head.rotation.x)*.16;}else{player.userData.head.rotation.y*=.84;player.userData.head.rotation.x*=.84;}
- updateVoiceMouths();player.userData.mouth.scale.y+=((player.userData.speaking?2.4:1)-player.userData.mouth.scale.y)*.32;
+ updateVoiceMouths();player.userData.mouth.scale.y+=((player.userData.speaking?.58:.08)-player.userData.mouth.scale.y)*.24;
  updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);if($('lobby').style.display!=='none')previewRenderer.render(previewScene,previewCamera);
 }
 animate();
