@@ -98,6 +98,14 @@ button:disabled{opacity:.35;cursor:default}
 }
 
 
+#driveCombat{display:none;position:fixed;right:14px;top:14px;z-index:9;min-width:205px;max-width:260px;padding:11px 13px;border-radius:12px;background:#101b2be8;border:1px solid #8eb9df88;color:#fff;font:600 13px/1.45 system-ui;white-space:pre-line;backdrop-filter:blur(8px);pointer-events:none}#driveFeed{color:#ffd58a;font-weight:700;margin-top:6px}#driveExit{display:none;position:fixed;right:14px;bottom:18px;z-index:8;background:#17283bdd;border:1px solid #b8d9f2;color:#fff;padding:11px 14px}#driveBackMenu{display:none;position:fixed;left:14px;bottom:18px;z-index:30;background:#174b86;border:2px solid #d4eaff;color:#fff;padding:12px 18px;border-radius:10px;font:bold 14px system-ui;cursor:pointer;box-shadow:0 3px 12px #0008}#driveBackMenu:hover{background:#246bb5}#driveSwitchCar{display:none;position:fixed;right:14px;bottom:76px;z-index:8;background:#263f70;border:1px solid #b8d9f2;color:#fff;padding:11px 14px;border-radius:10px;font-weight:bold;cursor:pointer}#driveHud{display:none;position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;color:#fff;background:#101b2bdc;border:1px solid #8eb9df66;border-radius:14px;padding:10px 18px;text-align:center;min-width:190px;backdrop-filter:blur(8px);font-weight:bold;text-shadow:0 2px 4px #000}
+#driveSpeed{font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+#driveWeaponArt{display:none;position:fixed;right:0;bottom:0;width:min(46vw,430px);height:min(39vh,310px);z-index:19;pointer-events:none;filter:drop-shadow(0 5px 5px #000b)}#driveWeaponArt svg{display:none;width:100%;height:100%;overflow:visible}#driveCrosshair{display:none;position:fixed;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);z-index:20;pointer-events:none}
+#driveCrosshair:before,#driveCrosshair:after{content:"";position:absolute;background:#fff;box-shadow:0 0 2px #000}
+#driveCrosshair:before{width:2px;height:12px;left:5px;top:0}
+#driveCrosshair:after{height:2px;width:12px;top:5px;left:0}#driveLabel{font-size:11px;color:#b9d8f5;letter-spacing:2px}
+#driveHelp{display:none;position:fixed;top:12px;left:12px;z-index:7;color:#fff;background:#101b2bdc;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.65;pointer-events:none}
+#driveSelect{display:none;margin:8px auto;padding:9px;border:0;border-radius:8px;background:#fff;color:#182536;font-size:14px}
 #mobileNotice{display:none;position:fixed;inset:0;z-index:999999;background:radial-gradient(circle at top,#284765 0%,#182536 55%,#101923 100%);color:#fff;align-items:center;justify-content:center;padding:28px;text-align:center;font-family:Arial,sans-serif}
 #mobileNotice .mobileCard{width:min(420px,100%);padding:30px 24px;border:1px solid #ffffff24;border-radius:20px;background:#101d2be8;box-shadow:0 18px 55px #0008}
 #mobileNotice .mobileIcon{font-size:48px;margin-bottom:14px}
@@ -138,9 +146,10 @@ html.mobile-block #mobileNotice{display:flex}
 </div>
 <div id="lobby"><div class="box">
 <h2>Okey 3D Kafe</h2>
-<div id="modes"><button id="m1" class="on">101 Okey</button><button id="m2">Satranç</button><button id="m3">Rus Ruleti</button><br><button id="bt" style="display:none">Botlar: Açık</button></div>
+<div id="modes"><button id="m1" class="on">101 Okey</button><button id="m2">Satranç</button><button id="m3">Rus Ruleti</button><button id="m4">Şehir Sürüşü</button><br><button id="bt" style="display:none">Botlar: Açık</button></div>
 <input id="nm" placeholder="Adın" maxlength="12"><br>
 <div id="avatarPreview" aria-label="Karakter önizlemesi"></div>
+<select id="driveSelect" aria-label="Sürüş arabası"><option value="calm">Sakin sürüş arabası</option><option value="drift">Drift arabası</option></select>
 <div class="look">
 <div class="lookRow">Karakter <select id="genderStyle"><option value="male">Erkek</option><option value="female">Kadın</option></select>　Saç <select id="hairStyle"><option value="classic">Kısa</option><option value="spiky">Hacimli</option><option value="side">Yana taralı</option><option value="long">Uzun düz</option><option value="bob">Küt</option><option value="pony">At kuyruğu</option><option value="braid">Örgülü</option><option value="curly">Kıvırcık</option><option value="pixie">Kısa katlı</option><option value="waves">Dalgalı uzun</option><option value="bun">Topuz</option><option value="afro">Kabarık bukle</option></select></div>
 <div class="lookRow">Üst kıyafet <select id="shirtStyle"><option value="normal">Normal</option><option value="hoodie">Kapüşonlu</option><option value="jacket">Ceket</option></select>　Pantolon <select id="pantsStyle"><option value="normal">Normal</option><option value="jeans">Kot</option><option value="shorts">Şort</option></select></div>
@@ -184,6 +193,42 @@ html.mobile-block #mobileNotice{display:flex}
 <div id="okeyInfo" aria-live="polite" style="display:none"></div>
 <div id="autoInfo" aria-live="polite"><span id="autoTotal">Oto gruplanan: 0 taş</span><span id="autoPairs">Çift: 0 / 5 çift</span></div>
 </div>
+<div id="driveCrosshair"></div><div id="driveWeaponArt" aria-hidden="true">
+<svg id="driveRifleArt" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+ <g transform="translate(420 0) scale(-1 1)">
+ <defs><linearGradient id="rifleMetal" x2="0.8" y2="1"><stop stop-color="#657789"/><stop offset=".42" stop-color="#273746"/><stop offset="1" stop-color="#101923"/></linearGradient><linearGradient id="rifleHand" x2="0" y2="1"><stop stop-color="#e0b18e"/><stop offset="1" stop-color="#98664e"/></linearGradient></defs>
+ <!-- forearm and supporting hand -->
+ <path d="M420 300 L340 300 Q317 280 300 251 L267 207 L302 177 L355 221 L420 238Z" fill="#243d59" stroke="#101923" stroke-width="5"/>
+ <path d="M320 270 Q296 245 275 220 L250 190 Q244 178 254 170 Q264 162 274 173 L306 205 L280 165 Q273 151 284 145 Q296 140 305 153 L338 196 L322 154 Q318 140 331 135 Q344 132 350 148 L374 204 L370 166 Q369 151 382 150 Q395 151 397 168 L405 235 L420 252 L420 300Z" fill="url(#rifleHand)" stroke="#744c3b" stroke-width="4"/>
+ <!-- rifle body angled toward the crosshair -->
+ <path d="M185 175 L215 145 L260 119 L310 83 L347 56 L366 73 L338 111 L292 151 L258 184 L232 219 L202 222Z" fill="url(#rifleMetal)" stroke="#0b1118" stroke-width="7" stroke-linejoin="round"/>
+ <path d="M335 68 L375 28 L389 41 L358 86Z" fill="#202d39" stroke="#0b1118" stroke-width="5"/>
+ <path d="M353 47 L399 2 L409 12 L369 60Z" fill="#9aaaba" stroke="#17212b" stroke-width="4"/>
+ <path d="M200 164 L236 126 L255 140 L221 181Z" fill="#8193a2" stroke="#15212b" stroke-width="4"/>
+ <path d="M230 184 L269 151 L289 172 L251 207Z" fill="#182531" stroke="#080d12" stroke-width="4"/>
+ <path d="M252 190 L282 220 L260 255 L224 224Z" fill="#263847" stroke="#0b1118" stroke-width="5"/>
+ <path d="M226 224 L252 249 L235 281 L207 257Z" fill="#17232e" stroke="#080d12" stroke-width="4"/>
+ <path d="M270 130 L319 87 L328 97 L279 141Z" fill="#a7b5c1" opacity=".65"/>
+ <path d="M286 154 L315 129" stroke="#9aabba" stroke-width="4" opacity=".65"/>
+ <!-- trigger hand -->
+ <path d="M214 205 Q192 195 178 211 Q166 225 180 241 L211 270 Q224 281 239 268 L258 246 L239 219Z" fill="url(#rifleHand)" stroke="#744c3b" stroke-width="4"/>
+ </g>
+</svg>
+<svg id="drivePistolArt" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+ <g transform="translate(420 0) scale(-1 1)">
+ <defs><linearGradient id="pistolMetal" x2=".8" y2="1"><stop stop-color="#718292"/><stop offset=".45" stop-color="#293947"/><stop offset="1" stop-color="#111a23"/></linearGradient><linearGradient id="pistolHand" x2="0" y2="1"><stop stop-color="#e0b18e"/><stop offset="1" stop-color="#98664e"/></linearGradient></defs>
+ <path d="M420 300 L333 300 Q315 278 298 251 L269 207 L305 178 L357 220 L420 239Z" fill="#243d59" stroke="#101923" stroke-width="5"/>
+ <path d="M320 270 Q296 245 275 220 L250 190 Q244 178 254 170 Q264 162 274 173 L306 205 L280 165 Q273 151 284 145 Q296 140 305 153 L338 196 L322 154 Q318 140 331 135 Q344 132 350 148 L374 204 L370 166 Q369 151 382 150 Q395 151 397 168 L405 235 L420 252 L420 300Z" fill="url(#pistolHand)" stroke="#744c3b" stroke-width="4"/>
+ <path d="M193 177 L230 139 L277 103 L329 61 L361 81 L332 121 L284 162 L250 198 L218 225Z" fill="url(#pistolMetal)" stroke="#0b1118" stroke-width="7" stroke-linejoin="round"/>
+ <path d="M329 61 L373 22 L394 42 L361 81Z" fill="#1b2834" stroke="#080d12" stroke-width="5"/>
+ <path d="M352 40 L400 0 L411 12 L373 57Z" fill="#9aaaba" stroke="#17212b" stroke-width="4"/>
+ <path d="M210 166 L253 125 L270 142 L230 184Z" fill="#8798a7" stroke="#17212b" stroke-width="4"/>
+ <path d="M238 189 L276 154 L296 177 L258 214Z" fill="#17232e" stroke="#080d12" stroke-width="4"/>
+ <path d="M258 204 L292 232 L260 279 L226 248Z" fill="#293b49" stroke="#0b1118" stroke-width="5"/>
+ <path d="M216 213 Q194 203 179 218 Q168 231 182 246 L210 271 Q224 282 239 268 L258 246 L239 220Z" fill="url(#pistolHand)" stroke="#744c3b" stroke-width="4"/>
+ </g>
+</svg>
+</div><div id="driveHelp">W / S: Gaz - Fren<br>A / D: Sağa - Sola direksiyon<br>SPACE: El freni / Drift<br>Mouse: Kamerayı döndür</div><div id="driveCombat"><div id="driveHp">CAN: 100 / 100</div><div id="driveWeapon">1: Hızlı enerji</div><div id="driveScore">Öldürme: 0</div><div id="driveFeed">Çatışma için arabadan in.</div></div><button id="driveExit" type="button">Arabadan in (E)</button><button id="driveBackMenu" type="button">MENÜYE DÖN</button><button id="driveSwitchCar" type="button">Drift arabasına geç</button><div id="driveHud"><div id="driveSpeed">0</div><div id="driveLabel">KM/SA</div><div id="driveCarName">Sakin sürüş</div></div>
 <div id="mobileMove" aria-label="Telefon hareket kontrolleri">
 <button type="button" data-key="w" aria-label="İleri">▲</button>
 <button type="button" data-key="a" aria-label="Sola">◀</button>
@@ -563,7 +608,7 @@ $('drinkTea').onclick=()=>net({t:'tea',drink:'tea'});
 $('drinkCoffee').onclick=()=>net({t:'tea',drink:'coffee'});
 
 /* ---------- OYUN MANTIĞI (sunucu = oda kuran) ---------- */
-let G=null,L={type:['human','empty','empty','empty'],names:['','','',''],look:[null,null,null,null]},conns=[],peer=null,conn=null,isHost=false;
+let G=null,L={type:['human','empty','empty','empty','empty'],names:['','','','',''],look:[null,null,null,null,null],vehicle:['calm','calm','calm','calm','calm']},conns=[],peer=null,conn=null,isHost=false;
 let me=-1,view=null,hand=[],chosen=new Set(),pend=[],started=false,okey=null;
 const DEF=[{s:'#d9534f',h:'#2b1b12',k:'#ffc38e'},{s:'#5cb85c',h:'#c8a24a',k:'#e8b48a'},{s:'#f0ad4e',h:'#111111',k:'#c68a5e'},{s:'#9b59b6',h:'#6b3a1e',k:'#ffd5b0'}];
 const cl=v=>/^#[0-9a-f]{6}$/i.test(v)?v:'#888888';
@@ -1146,20 +1191,26 @@ function tuneVoiceCall(call){try{const pc=call.peerConnection;if(!pc)return;for(
 function watchVoice(call){tuneVoiceCall(call);const audioId='remoteVoice_'+String(call.peer||Math.random()).replace(/[^a-zA-Z0-9_-]/g,'_');call.on('stream',stream=>{tuneVoiceCall(call);const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=$(audioId);if(!audio){audio=document.createElement('audio');audio.id=audioId;audio.autoplay=true;audio.playsInline=true;audio.volume=1;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$(audioId);if(a){a.pause();a.srcObject=null;a.remove()}});return call}
 function handleVoiceCall(call){call.answer(voiceOn?outgoingVoice:undefined);watchVoice(call)}
 function receiveChat(d){chatLine(d.name||'Oyuncu',d.text||'')}
-addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle()});
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function lockDrivePointer(){if(driveActive&&!driveInCar&&driveHasWeapon&&document.pointerLockElement!==renderer.domElement){try{renderer.domElement.requestPointerLock()}catch(e){}}}
+function unlockDrivePointer(){if(document.pointerLockElement===renderer.domElement)document.exitPointerLock?.()}
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===renderer.domElement){drag=false;} });
+addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key===' '?' ':e.key.toLowerCase();if(k==='v'&&!e.repeat){e.preventDefault();if(voiceOn)setPtt(true);else toggleVoice().then(()=>{if(voiceOn)setPtt(true)});return}if(driveActive&&k===' ')e.preventDefault();keys[k]=true;if(driveActive&&!driveInCar&&(k==='1'||k==='2')){driveWeapon=Number(k);driveHasWeapon=true;driveFirstPerson=true;if(driveFpRig)updateDriveFPRig();showDriveWeapon(true);updateDriveCombatUI();lockDrivePointer();msg(driveWeapon===1?'Tüfek seçildi.':'Tabanca seçildi.')}if(driveActive&&k==='g'&&!e.repeat&&!driveInCar){toggleDriveWeapon();return}if(k==='e'&&!e.repeat){if(driveActive){driveInCar=!driveInCar;placeDriver(me,driveInCar);showDriveWeapon(!driveInCar);if(driveInCar)unlockDrivePointer();else lockDrivePointer();$('driveHelp').innerHTML=driveInCar?'W / S: Gaz - Fren<br>A / D: Sağa - Sola direksiyon<br>SPACE: El freni / Drift<br>E: Arabadan in<br>Mouse: Kamerayı döndür':'W / S: İleri - Geri<br>A / D: Sola - Sağa yürü<br>1: AK-47 tarzı tüfek · 2: Glock 17 tarzı tabanca<br>G: Silahı gizle / çıkar<br>Sol tık: Ateş et<br>E: Arabaya bin<br>Mouse: Kamerayı döndür';$('driveExit').textContent=driveInCar?'Arabadan in (E)':'Arabaya bin (E)';msg(driveInCar?'Arabaya bindin.':'Arabadan indin.');}else sitToggle()}});
+addEventListener('keyup',e=>{const k=e.key===' '?' ':e.key.toLowerCase();keys[k]=false;if(k==='v')setPtt(false)});
 let drag=false,lx=0,ly=0;
 let sx=0,sy=0;const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
-renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lx=sx=e.clientX;ly=sy=e.clientY});
-addEventListener('pointerup',e=>{drag=false;if(Math.hypot(e.clientX-sx,e.clientY-sy)<6&&e.target===renderer.domElement)pick(e)});
-function pick(e){if(!seated||!view)return;if(mode==='chess'){chessPick(e);return}if(mode==='rou'){rouPick(e);return}mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lx=sx=e.clientX;ly=sy=e.clientY;if(driveActive&&!driveInCar&&driveHasWeapon)lockDrivePointer()});
+document.addEventListener('pointerdown',e=>{if(e.button===0&&driveActive&&!driveInCar&&driveHasWeapon&&document.pointerLockElement===renderer.domElement){e.preventDefault();driveShotOnDown=true;fireDriveShot();if(driveWeapon===1){clearInterval(driveAutoFireTimer);driveAutoFireTimer=setInterval(()=>{if(driveShotOnDown&&driveActive&&!driveInCar&&driveHasWeapon&&driveWeapon===1&&document.pointerLockElement===renderer.domElement)fireDriveShot();},170)}}},true);
+addEventListener('pointerup',e=>{drag=false;const locked=document.pointerLockElement===renderer.domElement;const clickStill=(Math.hypot(e.clientX-sx,e.clientY-sy)<6);const firedOnDown=driveShotOnDown;driveShotOnDown=false;clearInterval(driveAutoFireTimer);driveAutoFireTimer=null;if(!firedOnDown&&(locked||clickStill)&&(e.target===renderer.domElement||locked)){if(driveActive&&!driveInCar)fireDriveShot();else pick(e)}});
+addEventListener('pointercancel',()=>{driveShotOnDown=false;clearInterval(driveAutoFireTimer);driveAutoFireTimer=null});
+addEventListener('blur',()=>{driveShotOnDown=false;clearInterval(driveAutoFireTimer);driveAutoFireTimer=null});
+function pick(e){if(driveActive&&!driveInCar){if(driveHP[me]<=0)return;mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);const hit=ray.intersectObjects(avatars.filter((a,i)=>i!==me&&a.visible&&driveHP[i]>0),true)[0];if(hit){let obj=hit.object;while(obj&&obj.userData.seat===undefined)obj=obj.parent;const target=obj?.userData?.seat;if(Number.isInteger(target))sendDriveHit(target)}return;}if(!seated||!view)return;if(mode==='chess'){chessPick(e);return}if(mode==='rou'){rouPick(e);return}mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
  const c=[['t',ray.intersectObjects(myTiles)[0]],['c',ray.intersectObjects(teas.filter(x=>x.userData.seat===me),true)[0]],['m',ray.intersectObjects(meldTiles)[0]]].filter(x=>x[1]).sort((a,b)=>a[1].distance-b[1].distance)[0];
  if(!c)return;const o=c[1].object;
  if(c[0]==='c'){let g=o;while(g&&!teas.includes(g))g=g.parent;if(g)drink(g)}
  else if(c[0]==='m'){if(chosen.size===1&&view.turn===me&&view.drawn){send({t:'add',id:[...chosen][0],seat:o.userData.seat,mi:o.userData.mi});chosen.clear();renderHand();buttons()}else msg('İşlemek için önce elinden tek bir taş seç.')}
  else{const id=o.userData.id;chosen.has(id)?chosen.delete(id):chosen.add(id);renderHand();buttons()}}
-addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
- if(seated){offY=Math.max(-1.1,Math.min(1.1,offY-dx*.004));offP=Math.max(-.5,Math.min(.5,offP-dy*.004))}
+addEventListener('pointermove',e=>{const locked=document.pointerLockElement===renderer.domElement;if(!locked&&!drag)return;const dx=locked?(e.movementX||0):e.clientX-lx,dy=locked?(e.movementY||0):e.clientY-ly;lx=e.clientX;ly=e.clientY;
+ if(driveActive){driveYaw-=dx*.0028;drivePitch=Math.max(-.35,Math.min(.62,drivePitch-dy*.0024));}else if(seated){offY=Math.max(-1.1,Math.min(1.1,offY-dx*.004));offP=Math.max(-.5,Math.min(.5,offP-dy*.004))}
  else{yaw-=dx*.005;pitch=Math.max(-.1,Math.min(1,pitch+dy*.005))}});
 
 let lastPos=0,lastSit=null,lx0=0,lz0=0,lastHeadY=99,lastHeadX=99;const seatV=new THREE.Vector3();
@@ -1179,8 +1230,340 @@ function updateAvatars(){for(let i=0;i<avatars.length;i++){if(i===me)continue;co
  u.head.rotation.y+=((Number.isFinite(u.hy)?u.hy:0)-u.head.rotation.y)*.18;u.head.rotation.x+=((Number.isFinite(u.hx)?u.hx:0)-u.head.rotation.x)*.18;
  u.mouth.scale.y+=((u.speaking?.58:.08)-u.mouth.scale.y)*.24;}}
 const look=new THREE.Vector3();
+/* ---------- SEHIR SURUS MODU ---------- */
+const driveCars=[],driveTargets=[],driveKeys={};
+let driveActive=false,driveInCar=true,driveYaw=0,drivePitch=.18,driveLastSend=0,driveLastTime=0,driveWorld=[],driveObstacles=[],driveSavedVisibility=[],driveHasWeapon=true,driveFirstPerson=false,driveDroppedProp=null;
+let driveHP=Array(5).fill(100),driveKills=Array(5).fill(0),drivePositions=Array(5).fill(null),driveHitTimes=Array(5).fill(0),driveWeapon=1,driveFeed='Çatışma için arabadan in.';
+let driveFpRig=null,driveFpGun=null,driveMuzzleFlash=null,driveMuzzleLight=null,driveMuzzleTimer=0,driveEngineOsc=null,driveEngineGain=null,driveEngineFilter=null,driveEngineAudio=null,driveAccelAudio=null,drivePrevEngineSpeed=0,driveShotOnDown=false,driveAutoFireTimer=null;
+const carSpecs={calm:{name:'Sakin sürüş',max:33.333333,accel:20,brake:24,grip:8,steer:1.55,drag:1.7,color:0x263f70},drift:{name:'Drift',max:66.667,accel:28,brake:22,grip:2.4,steer:2.05,drag:0.45,color:0xc52f3b}};
+function mat(color,roughness=.78,metalness=.05){return new THREE.MeshStandardMaterial({color,roughness,metalness})}
+function addBox(parent,w,h,d,color,x,y,z,material=null){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material||mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function makeCar(type){
+ const spec=carSpecs[type],g=new THREE.Group();g.userData={type,speed:0,steer:0,vx:0,vz:0,target:null,wheels:[]};
+ const paint=mat(spec.color,.3,.55),darkGlass=new THREE.MeshStandardMaterial({color:0x142332,roughness:.18,metalness:.35}),rubber=mat(0x101216,.94),rim=mat(0xb9c5d1,.28,.8),light=mat(0xf8e5ad,.2,.2),tail=mat(0xb51e26,.25,.1);
+ // Alçak ve geniş drift coupe; sakin araçta daha uzun sedan gövdesi.
+ const drift=type==='drift',length=drift?4.25:4.65,width=drift?2.05:1.92;
+ addBox(g,width,.48,length,spec.color,0,.68,0,paint);
+ addBox(g,width*.94,.22,length*.42,spec.color,0,.98,-.05,paint);
+ const cabin=addBox(g,width*.78,.62,length*(drift?.43:.48),0x172735,0,1.31,-.18,darkGlass);
+ addBox(g,width*.8,.10,.13,spec.color,0,1.66,-.05,paint);
+ // Kaput, bagaj ve sportif tampon ayrıntıları.
+ addBox(g,width*.84,.07,length*.25,spec.color,0,.97,.72,paint);
+ addBox(g,width*.86,.08,.25,0x171b22,0,.55,2.02);
+ addBox(g,width*.86,.08,.22,0x171b22,0,.55,-2.02);
+ for(const x of[-.68,.68]){addBox(g,.055,.07,.72,0xc4d3dc,x,1.02,.64);addBox(g,.07,.09,.38,0x202a35,x,.98,-.8)}
+ for(const x of[-.72,.72]){addBox(g,.26,.16,.08,0xf7f3dd,x,.79,2.13,light);addBox(g,.24,.14,.08,0xd51e2b,x,.78,-2.13,tail)}
+ // Aynalar ve kapı çizgileri.
+ for(const x of[-1,1]){addBox(g,.18,.11,.22,spec.color,x,1.2,.55,paint);addBox(g,.025,.018,1.25,0x101820,x*.965,.72,-.05)}
+ // Dört ayrı teker, metal jant ve bijon halkası.
+ for(const x of[-.99,.99])for(const z of[-1.42,1.42]){
+  const w=new THREE.Group();w.position.set(x,.47,z);const tire=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.25,20),rubber);tire.rotation.z=Math.PI/2;tire.castShadow=true;w.add(tire);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.265,16),rim);hub.rotation.z=Math.PI/2;w.add(hub);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.275,12),mat(0x343b44,.3,.8));cap.rotation.z=Math.PI/2;w.add(cap);
+  g.add(w);g.userData.wheels.push(w);
+ }
+ // Ön cam ve arka cam yüzeyleri.
+ const windshield=addBox(g,width*.73,.42,.045,0x243e50,0,1.35,.57,darkGlass);windshield.rotation.x=-.16;
+ const rearGlass=addBox(g,width*.72,.38,.045,0x243e50,0,1.34,-.91,darkGlass);rearGlass.rotation.x=.2;
+ if(drift){addBox(g,1.72,.07,.12,0x17191e,0,1.65,-1.82);for(const x of[-.68,.68])addBox(g,.09,.32,.1,0x17191e,x,1.48,-1.8);addBox(g,.14,.12,.18,0x17191e,0,.86,-2.25)}
+ else{addBox(g,1.5,.08,.1,0x343b45,0,1.55,-1.8);addBox(g,.12,.2,.14,0x343b45,0,1.39,-1.8)}
+ g.userData.paint=paint;return g;
+}
+function buildCity(){
+ const oldFog=scene.fog;scene.background=new THREE.Color(0x9bb5c7);scene.fog=new THREE.Fog(0x9bb5c7,620,1450);camera.far=1800;camera.updateProjectionMatrix();
+ const hemi=new THREE.HemisphereLight(0xdceeff,0x59614e,1.35);hemi.name='driveLight';scene.add(hemi);
+ const sunLight=new THREE.DirectionalLight(0xfff1d5,2.0);sunLight.position.set(-130,190,110);sunLight.castShadow=true;sunLight.shadow.mapSize.set(2048,2048);sunLight.shadow.camera.left=-220;sunLight.shadow.camera.right=220;sunLight.shadow.camera.top=220;sunLight.shadow.camera.bottom=-220;sunLight.name='driveLight';scene.add(sunLight);
+ const ground=addBox(scene,1000,.3,1000,0x64745e,0,-.22,0);ground.receiveShadow=true;driveWorld.push(ground);
+ const roadMat=mat(0x292f35,.95),sideMat=mat(0xaaa99f),lineMat=mat(0xe8dfb9),grassMat=mat(0x617b59);
+ // Büyük, düzenli ama farklı cephe yükseklikleri olan şehir dokusu.
+ for(let k=-4;k<=4;k++){
+  const p=k*92;
+  const roadX=addBox(scene,17,.08,900,0x292f35,p,.0,0,roadMat);const roadZ=addBox(scene,900,.08,17,0x292f35,0,.005,p,roadMat);
+  addBox(scene,2.1,.12,900,0xaaa99f,p-9.5,.02,0,sideMat);addBox(scene,2.1,.12,900,0xaaa99f,p+9.5,.02,0,sideMat);
+  addBox(scene,900,.12,2.1,0xaaa99f,0,.02,p-9.5,sideMat);addBox(scene,900,.12,2.1,0xaaa99f,0,.02,p+9.5,sideMat);
+  // Kesik yol çizgileri.
+  for(let n=-8;n<=8;n++){const t=n*48;addBox(scene,.22,.018,5,0xe5dfc9,p,.055,t,lineMat);addBox(scene,5,.018,.22,0xe5dfc9,t,.055,p,lineMat)}
+ }
+ let seed=481;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+ const facadeCanvas=document.createElement('canvas');facadeCanvas.width=256;facadeCanvas.height=256;const fctx=facadeCanvas.getContext('2d');fctx.fillStyle='#9d9a8e';fctx.fillRect(0,0,256,256);for(let fy=8;fy<256;fy+=34){for(let fx=8;fx<256;fx+=42){fctx.fillStyle='#344e60';fctx.fillRect(fx,fy,25,21);fctx.fillStyle='#d5c8ad';fctx.fillRect(fx+11,fy,2,21);fctx.fillRect(fx,fy+10,25,2)}}const facadeTexture=new THREE.CanvasTexture(facadeCanvas);facadeTexture.colorSpace=THREE.SRGBColorSpace;
+ const buildingColors=[0x9c9b91,0xb6aa97,0x7f929b,0xc2b7a3,0x777f83,0xd0c5b2,0x8f9d9d];
+ for(let gx=-4;gx<4;gx++)for(let gz=-4;gz<4;gz++){
+  const cx=gx*92+46,cz=gz*92+46;
+  // Her adada küçük park veya farklı katlı binalar.
+  if(rnd()<.2){const park=addBox(scene,48,.12,48,0x55764e,cx,.02,cz,grassMat);for(let i=0;i<10;i++){const x=cx+(rnd()-.5)*38,z=cz+(rnd()-.5)*38;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,2.6,7),mat(0x60442c));trunk.position.set(x,1.35,z);scene.add(trunk);const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(2.0+rnd()*1.3,1),mat(0x3d7045));crown.position.set(x,3.5+rnd(),z);crown.castShadow=true;scene.add(crown)}continue}
+  for(let bx=0;bx<2;bx++)for(let bz=0;bz<2;bz++){
+   const w=15+rnd()*10,d=15+rnd()*10,h=10+rnd()*34,x=cx+(bx?13:-13)+(rnd()-.5)*4,z=cz+(bz?13:-13)+(rnd()-.5)*4;
+   const color=buildingColors[Math.floor(rnd()*buildingColors.length)],facadeMat=new THREE.MeshStandardMaterial({color,map:facadeTexture,roughness:.88,metalness:.02});const b=addBox(scene,w,h,d,color,x,h/2,z,facadeMat);driveObstacles.push({x,z,w,d});
+   if(rnd()>.35)addBox(scene,w*.35,.18,d*.35,0x555c60,x,h+.08,z);
+  }
+ }
+ // Sokak lambaları, banklar ve yön levhaları; yaya veya trafik NPC'si yok.
+ for(let x=-368;x<=368;x+=184)for(let z=-368;z<=368;z+=184){
+  for(const side of[-1,1]){const lx=x+side*12,lz=z+12;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.09,.13,5.2,8),mat(0x41494f));pole.position.set(lx,2.6,lz);scene.add(pole);addBox(scene,.8,.12,.16,0x41494f,lx,5.1,lz);const bulb=new THREE.PointLight(0xffe2b1,2,18);bulb.position.set(lx,4.9,lz);scene.add(bulb)}
+ }
+ scene.userData.oldFog=oldFog;
+}
+function makeDriveWeaponModel(type){
+ // Oyun için dekoratif, çalışmayan 3B silah prop modelleri.
+ const g=new THREE.Group();
+ const metal=new THREE.MeshStandardMaterial({color:0x252a30,metalness:.68,roughness:.38});
+ const polymer=new THREE.MeshStandardMaterial({color:0x171a1e,metalness:.12,roughness:.82});
+ const accent=new THREE.MeshStandardMaterial({color:0x454b52,metalness:.72,roughness:.32});
+ const box=(x,y,z,sx,sy,sz,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),m);o.position.set(x,y,z);g.add(o);return o};
+ const cyl=(x,y,z,r1,r2,len,m)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,12),m);o.rotation.x=Math.PI/2;o.position.set(x,y,z);g.add(o);return o};
+ if(type===1){
+  // AK-47 tarzı tüfek: uzun gövde, ön el kundağı, dipçik ve aşağı uzanan şarjör.
+  box(0,0,.18,.16,.18,.58,metal);box(0,.015,.48,.19,.15,.40,polymer);
+  box(0,-.015,-.30,.12,.13,.43,polymer);box(0,-.02,-.60,.10,.10,.22,accent);
+  cyl(0,.02,.82,.035,.035,.72,metal);box(0,.095,.52,.11,.10,.44,polymer);
+  box(0,-.22,.23,.105,.34,.16,polymer).rotation.x=-.12;
+  box(0,.14,.13,.055,.06,.12,accent);box(0,.13,.68,.045,.05,.10,accent);
+  box(0,-.10,.10,.09,.12,.18,polymer);
+ }else{
+  // Glock 17 tarzı tabanca: kısa sürgü, kabza ve tetik korkuluğu silueti.
+  box(0,.025,.20,.14,.13,.56,metal);box(0,.105,.19,.145,.055,.54,accent);
+  cyl(0,.02,.55,.027,.027,.28,metal);box(0,-.14,-.02,.12,.28,.18,polymer);
+  const guard=new THREE.Mesh(new THREE.TorusGeometry(.075,.014,7,18,Math.PI),accent);guard.rotation.z=Math.PI;guard.position.set(0,-.10,.17);g.add(guard);
+  box(0,.11,-.055,.055,.045,.08,accent);box(0,.105,.47,.045,.045,.07,accent);
+ }
+ g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+ return g;
+}
+function ensureDriveWeapon(av){
+ if(!av||av.userData.driveWeaponModels)return;
+ const arm=av.userData.a?.[1];if(!arm)return;
+ const models=[makeDriveWeaponModel(1),makeDriveWeaponModel(2)];
+ // Prop, sağ elde taşınacak şekilde kolun bilek hizasına yerleştirilir.
+ for(const g of models){g.position.set(0,-.65,.04);g.rotation.x=-.10;g.visible=false;arm.add(g)}
+ // Avatara görünür, sade el modelleri ekle; bunlar dekoratif eldiven/ten geometrileridir.
+ const handMat=av.userData.m?.skin||new THREE.MeshStandardMaterial({color:0xffc38e});
+ const hands=[];
+ for(const side of [0,1]){
+  const ag=av.userData.a[side],hg=new THREE.Group();
+  const palm=new THREE.Mesh(new THREE.BoxGeometry(.19,.16,.15),handMat);palm.position.set(0,-.83,.045);hg.add(palm);
+  for(let f=0;f<4;f++){
+   const finger=new THREE.Mesh(new THREE.BoxGeometry(.038,.105,.055),handMat);
+   finger.position.set(-.066+f*.044,-.91,.105);hg.add(finger);
+  }
+  const thumb=new THREE.Mesh(new THREE.BoxGeometry(.055,.11,.065),handMat);thumb.position.set(.105,-.85,.075);thumb.rotation.z=-.35;hg.add(thumb);
+  hg.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+  ag.add(hg);hands.push(hg);
+ }
+ av.userData.driveWeaponHands=hands;
+ av.userData.driveWeaponModels=models;av.userData.driveWeaponModel=models[driveWeapon-1];
+}
+function setDriveFirstPersonBody(hidden){
+ // Kamera tam kafa/göz hizasındayken avatarın kendi parçaları görüntüyü kapatmasın.
+ const torso=player.children[0],clothes=player.children[2];
+ if(torso)torso.visible=!hidden;if(clothes)clothes.visible=!hidden;
+ if(player.userData.head)player.userData.head.visible=!hidden;
+ (player.userData.l||[]).forEach(g=>g.visible=!hidden);
+ (player.userData.a||[]).forEach(g=>g.visible=!hidden);
+ if(driveFpRig)driveFpRig.visible=!!hidden&&driveHasWeapon&&!driveInCar;
+ const artVisible=driveActive&&!driveInCar&&driveHasWeapon&&driveFirstPerson;
+ $('driveWeaponArt').style.display=artVisible?'block':'none';
+ $('driveRifleArt').style.display=artVisible&&driveWeapon===1?'block':'none';
+ $('drivePistolArt').style.display=artVisible&&driveWeapon===2?'block':'none';
+}
+function ensureDriveFPRig(){
+ if(driveFpRig)return;
+ driveFpRig=new THREE.Group();driveFpRig.name='firstPersonHandsAndWeapon';camera.add(driveFpRig);
+ const skin=new THREE.MeshStandardMaterial({color:0xc99570,roughness:.82});
+ const sleeve=new THREE.MeshStandardMaterial({color:0x263d59,roughness:.9});
+ const makeArm=(x,rot)=>{const g=new THREE.Group();const fore=new THREE.Mesh(new THREE.CylinderGeometry(.075,.095,.48,10),sleeve);fore.rotation.x=Math.PI/2;fore.position.set(x*.82,-.27,-.31);g.add(fore);const hand=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.17),skin);hand.position.set(x*.55,-.205,-.52);g.add(hand);for(let fi=0;fi<3;fi++){const finger=new THREE.Mesh(new THREE.BoxGeometry(.035,.045,.13),skin);finger.position.set(x*.55+(fi-1)*.04,-.245,-.60);g.add(finger)}g.rotation.z=rot;g.position.set(-.52,-.30,-.50);driveFpRig.add(g)};
+ makeArm(-.24,.16);makeArm(.27,-.12);
+ driveFpGun=makeDriveWeaponModel(driveWeapon);driveFpGun.position.set(-.52,-.50,-1.08);driveFpGun.rotation.y=Math.PI;driveFpGun.scale.setScalar(.88);driveFpRig.add(driveFpGun);
+ driveMuzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),new THREE.MeshBasicMaterial({color:0xffa52b,transparent:true,opacity:.95}));driveMuzzleFlash.position.set(0,.02,driveWeapon===1?1.12:.66);driveMuzzleFlash.visible=false;driveMuzzleFlash.renderOrder=1001;driveMuzzleFlash.material.depthTest=false;driveFpGun.add(driveMuzzleFlash);
+ driveMuzzleLight=new THREE.PointLight(0xff8a22,0,2.2);driveMuzzleLight.position.copy(driveMuzzleFlash.position);driveFpGun.add(driveMuzzleLight);
+ driveFpRig.traverse(o=>{if(o.isMesh){o.renderOrder=999;if(o.material){o.material.depthTest=false;o.material.depthWrite=false}}});
+ driveFpRig.visible=false;
+}
+function updateDriveFPRig(){
+ ensureDriveFPRig();
+ if(driveFpGun){driveFpRig.remove(driveFpGun);driveFpGun=makeDriveWeaponModel(driveWeapon);driveFpGun.position.set(-.52,-.50,-1.08);driveFpGun.rotation.y=Math.PI;driveFpGun.scale.setScalar(.88);driveFpRig.add(driveFpGun);driveFpRig.traverse(o=>{if(o.isMesh){o.renderOrder=999;if(o.material){o.material.depthTest=false;o.material.depthWrite=false}}});driveMuzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),new THREE.MeshBasicMaterial({color:0xffa52b,transparent:true,opacity:.95}));driveMuzzleFlash.position.set(0,.02,driveWeapon===1?1.12:.66);driveMuzzleFlash.visible=false;driveMuzzleFlash.renderOrder=1001;driveMuzzleFlash.material.depthTest=false;driveFpGun.add(driveMuzzleFlash);driveMuzzleLight=new THREE.PointLight(0xff8a22,0,2.2);driveMuzzleLight.position.copy(driveMuzzleFlash.position);driveFpGun.add(driveMuzzleLight)}
+ driveFpRig.visible=false;
+}
+function showDriveWeapon(show){
+ ensureDriveWeapon(player);ensureDriveFPRig();const armed=!!show&&driveHasWeapon;
+ const models=player.userData.driveWeaponModels||[];models.forEach((g,i)=>g.visible=armed&&i===driveWeapon-1);
+ player.userData.driveWeaponModel=models[driveWeapon-1]||null;
+ const arms=player.userData.a||[];
+ if(arms[1]){arms[1].rotation.x=armed?-.95:0;arms[1].rotation.z=armed?-.08:0;}
+ // Diğer kol da öne uzanır; iki el silah propunun çevresinde görünür.
+ if(arms[0]){arms[0].rotation.x=armed?-.95:0;arms[0].rotation.z=armed?1.02:0;}
+ setDriveFirstPersonBody(armed&&driveFirstPerson);updateDriveFPRig();
+ $('driveCrosshair').style.display=armed?'block':'none';$('driveWeaponArt').style.display=armed&&driveActive&&!driveInCar&&driveFirstPerson?'block':'none';$('driveRifleArt').style.display=armed&&driveWeapon===1?'block':'none';$('drivePistolArt').style.display=armed&&driveWeapon===2?'block':'none';
+}
+function toggleDriveWeapon(){
+ // G silahı dünyaya bırakmaz; yalnızca eldeki modeli gizler.
+ driveHasWeapon=!driveHasWeapon;
+ if(!driveHasWeapon)unlockDrivePointer();else lockDrivePointer();
+ driveFirstPerson=driveHasWeapon;
+ showDriveWeapon(driveHasWeapon);
+ updateDriveCombatUI();
+ msg(driveHasWeapon?'Silahı tekrar eline aldın.':'Silah gizlendi.');
+}
+function playDriveGunSound(){
+ // Oyuna özel, sentetik atış efekti: kısa tok darbe + kontrollü hava patlaması + metalik kuyruk.
+ // Gerçek silah kaydı kullanılmaz; efekt oyun miksinde net duyulacak şekilde tasarlanır.
+ try{
+  initAC();if(!AC)return;const t=AC.currentTime;
+  const master=AC.createGain();master.gain.setValueAtTime(.72,t);master.connect(AC.destination);
+  // Tok alt darbe.
+  const thump=AC.createOscillator(),thumpGain=AC.createGain();
+  thump.type='sine';thump.frequency.setValueAtTime(105,t);thump.frequency.exponentialRampToValueAtTime(52,t+.095);
+  thumpGain.gain.setValueAtTime(.24,t);thumpGain.gain.exponentialRampToValueAtTime(.001,t+.13);
+  thump.connect(thumpGain);thumpGain.connect(master);thump.start(t);thump.stop(t+.14);
+  // Kısa, filtrelenmiş geniş bant darbe; tizliği sertleştirmeden atışın başlangıcını belirginleştirir.
+  const length=Math.max(1,Math.floor(AC.sampleRate*.11)),buffer=AC.createBuffer(1,length,AC.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++){const fade=1-i/length;data[i]=(Math.random()*2-1)*fade*fade;}
+  const burst=AC.createBufferSource(),burstFilter=AC.createBiquadFilter(),burstGain=AC.createGain();
+  burst.buffer=buffer;burstFilter.type='bandpass';burstFilter.frequency.setValueAtTime(760,t);burstFilter.Q.value=.7;
+  burstGain.gain.setValueAtTime(.16,t);burstGain.gain.exponentialRampToValueAtTime(.001,t+.105);
+  burst.connect(burstFilter);burstFilter.connect(burstGain);burstGain.connect(master);burst.start(t);
+  // Çok kısa metalik mekanik tını.
+  const tick=AC.createOscillator(),tickGain=AC.createGain();tick.type='triangle';tick.frequency.setValueAtTime(520,t);tick.frequency.exponentialRampToValueAtTime(230,t+.045);
+  tickGain.gain.setValueAtTime(.035,t);tickGain.gain.exponentialRampToValueAtTime(.001,t+.055);
+  tick.connect(tickGain);tickGain.connect(master);tick.start(t);tick.stop(t+.06);
+  setTimeout(()=>{try{master.disconnect()}catch(e){}},220);
+ }catch(e){}
+}
+function updateDriveEngineSound(){
+ try{
+  const car=driveCars[me],speed=driveInCar&&car?Math.abs(car.userData.speed||0):0;
+  const maxSpeed=car?carSpecs[car.userData.type]?.max||80:80;
+  const speedRatio=Math.max(0,Math.min(1,speed/maxSpeed));
+  const gas=driveInCar?(keys.w?1:keys.s?-.35:0):0;
+  const load=Math.max(0,gas);
+  if(!driveEngineOsc){
+   initAC();if(!AC)return;
+   const t=AC.currentTime;
+   // Ana motor tonu ve alt devir gövdesi.
+   const main=AC.createOscillator();main.type='sawtooth';
+   const low=AC.createOscillator();low.type='triangle';
+   const lowGain=AC.createGain();lowGain.gain.value=.34;
+   const bodyFilter=AC.createBiquadFilter();bodyFilter.type='lowpass';bodyFilter.frequency.value=430;bodyFilter.Q.value=.65;
+   driveEngineFilter=AC.createBiquadFilter();driveEngineFilter.type='lowpass';driveEngineFilter.frequency.value=680;
+   driveEngineGain=AC.createGain();driveEngineGain.gain.value=0;
+   main.connect(bodyFilter);low.connect(lowGain);lowGain.connect(bodyFilter);
+   bodyFilter.connect(driveEngineFilter);driveEngineFilter.connect(driveEngineGain);driveEngineGain.connect(AC.destination);
+   main.start(t);low.start(t);
+   // Rölantide belirgin, gaz verince azalan motor vuruntusu.
+   const pulse=AC.createOscillator();pulse.type='sine';pulse.frequency.value=8.5;
+   const pulseDepth=AC.createGain();pulseDepth.gain.value=.018;
+   pulse.connect(pulseDepth);pulseDepth.connect(driveEngineGain.gain);pulse.start(t);
+   // Çok hafif, filtrelenmiş mekanik/egzoz uğultusu.
+   const noiseBuffer=AC.createBuffer(1,Math.max(1,AC.sampleRate*2),AC.sampleRate);
+   const noiseData=noiseBuffer.getChannelData(0);
+   for(let i=0;i<noiseData.length;i++)noiseData[i]=(Math.random()*2-1)*.45;
+   const noise=AC.createBufferSource();noise.buffer=noiseBuffer;noise.loop=true;
+   const noiseFilter=AC.createBiquadFilter();noiseFilter.type='lowpass';noiseFilter.frequency.value=190;noiseFilter.Q.value=.7;
+   const noiseGain=AC.createGain();noiseGain.gain.value=0;
+   noise.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(AC.destination);noise.start(t);
+   driveEngineOsc=main;
+   driveEngineAudio={low,lowGain,pulse,pulseDepth,noise,noiseFilter,noiseGain,bodyFilter};
+  }
+  if(!AC||!driveEngineGain||!driveEngineAudio)return;
+  const now=AC.currentTime,active=driveInCar;
+  // Devir artışı kontrollü: motor sesi incelmek yerine yük altında dolgunlaşır.
+  const rpm=34+speedRatio*8+load*5;
+  driveEngineOsc.frequency.setTargetAtTime(rpm,now,.16);
+  driveEngineAudio.low.frequency.setTargetAtTime(rpm*.5,now,.16);
+  driveEngineAudio.bodyFilter.frequency.setTargetAtTime(300+load*260+speedRatio*100,now,.18);
+  driveEngineFilter.frequency.setTargetAtTime(520+load*430+speedRatio*150,now,.2);
+  const volume=active?(0.052+speedRatio*.018+load*.035):0;
+  driveEngineGain.gain.setTargetAtTime(volume,now,.18);
+  // Rölanti "vı-vı-vı"; gazda titreşim sıklaşıp küçülür, ses "vvvv" olur.
+  driveEngineAudio.pulse.frequency.setTargetAtTime(7.5+load*5+speedRatio*2,now,.2);
+  driveEngineAudio.pulseDepth.gain.setTargetAtTime(active?(.019*(1-load*.88)*(1-speedRatio*.55)):0,now,.18);
+  driveEngineAudio.lowGain.gain.setTargetAtTime(.28+load*.12,now,.18);
+  driveEngineAudio.noiseFilter.frequency.setTargetAtTime(145+load*180+speedRatio*70,now,.22);
+  driveEngineAudio.noiseGain.gain.setTargetAtTime(active?(.004+load*.012+speedRatio*.004):0,now,.2);
+  if(AC.state==='suspended')AC.resume().catch(()=>{});
+  drivePrevEngineSpeed=speed;
+ }catch(e){}
+}
+function showDriveMuzzleFlash(){
+ if(!driveFpGun||!driveFpRig?.visible||!driveMuzzleFlash)return;
+ driveMuzzleFlash.visible=true;if(driveMuzzleLight)driveMuzzleLight.intensity=3.2;
+ driveFpGun.position.z=-.57;
+ clearTimeout(driveMuzzleTimer);driveMuzzleTimer=setTimeout(()=>{if(driveMuzzleFlash)driveMuzzleFlash.visible=false;if(driveMuzzleLight)driveMuzzleLight.intensity=0;if(driveFpGun)driveFpGun.position.z=-.62},75);
+}
+function fireDriveShot(){
+ if(!driveActive||driveInCar||!driveHasWeapon||driveHP[me]<=0)return;
+ showDriveMuzzleFlash();
+ playDriveGunSound();
+ // Ekranın tam ortasındaki nişangâhtan hedef seçilir.
+ mv.set(0,0);ray.setFromCamera(mv,camera);
+ const hits=ray.intersectObjects(avatars.filter((a,i)=>i!==me&&a.visible&&driveHP[i]>0),true);
+ if(!hits.length){msg('Nişangâhta hedef yok.');return;}
+ let obj=hits[0].object;while(obj&&obj.userData.seat===undefined)obj=obj.parent;
+ const target=obj?.userData?.seat;if(Number.isInteger(target))sendDriveHit(target);
+}
+function setDriverAvatar(slot,look){const av=slot===me?player:avatars[slot];if(!av)return;if(look)setLook(av,look);av.visible=true;av.scale.setScalar(.42);av.position.set(-.42,.38,.12);av.rotation.set(0,0,0);av.userData.fixed=true;av.userData.l.forEach(q=>q.rotation.x=0);av.userData.a.forEach(q=>q.rotation.x=0)}
+function placeDriver(slot,inCar){const av=slot===me?player:avatars[slot],car=driveCars[slot];if(!av||!car)return;const fx=Math.sin(car.rotation.y),fz=Math.cos(car.rotation.y),sx=Math.cos(car.rotation.y),sz=-Math.sin(car.rotation.y);if(inCar){av.scale.setScalar(.42);av.position.set(car.position.x-fx*.05-sx*.42,.38,car.position.z-fz*.05-sz*.42);av.rotation.y=car.rotation.y;av.visible=true;}else{av.scale.setScalar(1);av.position.set(car.position.x+sx*2.2,.02,car.position.z+sz*2.2);av.rotation.y=car.rotation.y;av.visible=true;av.userData.fixed=false;}}
+function switchDriveCar(slot,type){const old=driveCars[slot];if(!old||!driveActive)return;const pos=old.position.clone(),rot=old.rotation.y,wasIn=slot===me&&driveInCar;scene.remove(old);const next=makeCar(type);next.position.copy(pos);next.rotation.y=rot;next.userData.speed=old.userData.speed||0;next.userData.vx=old.userData.vx||0;next.userData.vz=old.userData.vz||0;scene.add(next);driveCars[slot]=next;if(slot===me){$('driveCarName').textContent=carSpecs[type].name;if(wasIn)placeDriver(slot,true)}else if(avatars[slot])placeDriver(slot,true);return next;}
+function startDriving(packet=null){
+ unlockDrivePointer();
+ if(driveActive)return;if(packet?.names)L.names=packet.names.slice(0,5);driveActive=true;started=true;mode='drive';
+ // Mevcut kafe sahnesini sakla; diğer oyunların hiçbir nesnesini silme/değiştirme.
+ driveSavedVisibility=scene.children.map(o=>[o,o.visible]);for(const[o]of driveSavedVisibility)o.visible=false;
+ buildCity();
+ const count=5,vehicles=packet?.vehicles||L.vehicle||['calm','calm','calm','calm','calm'],looks=packet?.looks||L.look||[];
+ driveHP=Array(5).fill(100);driveKills=Array(5).fill(0);drivePositions=Array(5).fill(null);driveHitTimes=Array(5).fill(0);driveWeapon=1;driveHasWeapon=true;driveFirstPerson=false;if(driveDroppedProp){scene.remove(driveDroppedProp);driveDroppedProp=null;}driveFeed='Çatışma için arabadan in.';
+ for(let i=0;i<count;i++){
+  const occupied=i===me||!!packet?.names?.[i]||L.type?.[i]==='human';if(!occupied)continue;
+  const type=vehicles[i]==='drift'?'drift':'calm',car=makeCar(type);const x=(i%3-1)*5.5,z=(i<3?4.0:-4.0);car.position.set(x,.0,z);car.rotation.y=i%2?Math.PI:0;scene.add(car);driveCars[i]=car;driveTargets[i]={x,z,r:car.rotation.y,onFoot:false,px:x,pz:z};drivePositions[i]={x,z,onFoot:false};
+  if(i!==me){setDriverAvatar(i,looks[i]);placeDriver(i,true)}
+ }
+ const myType=$('driveSelect').value==='drift'?'drift':'calm';if(!packet){driveCars[me].userData.type=myType;driveCars[me].userData.paint.color.set(carSpecs[myType].color);driveCars[me].traverse(o=>{if(o.isMesh&&o.material?.color&&o.material.color.getHex()===carSpecs.calm.color)o.material.color.set(carSpecs[myType].color)});if(isHost){const payload={t:'driveStart',vehicles:driveCars.map(c=>c?.userData.type||'calm'),looks:L.look,names:L.names};conns.forEach(c=>c&&c.send(payload))}}
+ else{for(let i=0;i<count;i++)if(driveCars[i])driveCars[i].userData.type=vehicles[i]==='drift'?'drift':'calm'}
+ setDriverAvatar(me,packet?.looks?.[me]||myLook());driveInCar=true;placeDriver(me,true);ensureDriveFPRig();showDriveWeapon(false);
+ $('lobby').style.display='none';$('game').style.display='none';$('ui').style.display='none';$('help').style.display='none';$('chatPanel').style.display='block';$('driveCombat').style.display='block';$('driveHud').style.display='block';$('driveSwitchCar').style.display='block';$('driveHelp').style.display='block';$('driveExit').style.display='block';$('driveBackMenu').style.display='block';$('driveExit').textContent='Arabadan in (E)';$('driveCarName').textContent=carSpecs[driveCars[me].userData.type].name;$('driveSwitchCar').textContent=driveCars[me].userData.type==='drift'?'Sakin arabaya geç':'Drift arabasına geç';
+ $('tip').textContent='Şehirde sürüş modundasın.';$('driveHelp').innerHTML='W / S: Gaz - Fren<br>A / D: Direksiyon<br>SPACE: El freni / Drift<br>E: Arabadan in<br>Arabadan inince 1: AK-47 · 2: Glock 17<br>G: Silahı gizle / çıkar · Sol tık: Ateş et<br>Mouse: Kamerayı döndür';driveYaw=driveCars[me].rotation.y;updateDriveCombatUI();drivePitch=.18;driveLastTime=performance.now();msg('Şehir sürüşü başladı.');
+}
+function updateDrive(dt){
+ if(!driveActive)return;
+ const car=driveCars[me];if(!car)return;const u=car.userData,spec=carSpecs[u.type];
+ if(driveHP[me]<=0)return;
+ if(!driveInCar){let f=(keys.w?1:0)-(keys.s?1:0),strafe=(keys.a?1:0)-(keys.d?1:0);const mag=Math.hypot(f,strafe)||1;f/=mag;strafe/=mag;const sp=7.2*dt;/* Yan hareket kameranin sag vektorunu izler; A/D yaw veya pitch degerlerine dokunmaz. */const vx=Math.sin(driveYaw)*f+Math.cos(driveYaw)*strafe,vz=Math.cos(driveYaw)*f-Math.sin(driveYaw)*strafe;player.position.x=Math.max(-425,Math.min(425,player.position.x+vx*sp));player.position.z=Math.max(-425,Math.min(425,player.position.z+vz*sp));player.rotation.y=driveYaw;walk(player,!!(keys.w||keys.s||keys.a||keys.d));if(driveHasWeapon){driveFirstPerson=true;const eyeX=player.position.x+Math.sin(driveYaw)*.10,eyeZ=player.position.z+Math.cos(driveYaw)*.10;const eye=new THREE.Vector3(eyeX,1.82,eyeZ);camera.position.copy(eye);camera.up.set(0,1,0);/* Birinci şahıs nişan yönü yalnızca mouse ile değişir; A/D konum hareketi kameranın yaw/pitch açısını etkilemez. */camera.rotation.order='YXZ';camera.rotation.set(drivePitch,driveYaw+Math.PI,0,'YXZ');}else{driveFirstPerson=false;camera.position.lerp(new THREE.Vector3(player.position.x-Math.sin(driveYaw)*7,3.8,player.position.z-Math.cos(driveYaw)*7),Math.min(1,dt*5));camera.lookAt(player.position.x,1.2,player.position.z);}setDriveFirstPersonBody(driveHasWeapon&&driveFirstPerson);$('driveHelp').innerHTML='W / S: İleri - Geri<br>A / D: Sola - Sağa yürü<br>1: AK-47 tarzı tüfek · 2: Glock 17 tarzı tabanca<br>G: Silahı gizle / çıkar<br>Sol tık: Ateş et<br>E: Arabaya bin<br>Mouse: Kamerayı döndür';return;}
+ const gas=(keys.w?1:0)-(keys.s?1:0),steer=(keys.a?1:0)-(keys.d?1:0),hand=!!keys[' '];
+ const speed=Math.abs(u.speed),direction=u.speed>=0?1:-1;
+ if(gas>0)u.speed+=spec.accel*dt;else if(gas<0)u.speed-=spec.brake*dt;else u.speed*=Math.max(0,1-spec.drag*dt);
+ if(hand)u.speed*=Math.max(0,1-1.5*dt);u.speed=Math.max(-12,Math.min(spec.max,u.speed));
+ const steerScale=Math.min(1,speed/5);u.steer+=(steer*spec.steer*steerScale-u.steer)*Math.min(1,dt*5);
+ car.rotation.y+=u.steer*direction*dt*(.38+Math.min(speed/18,1)*.72);
+ const forwardX=Math.sin(car.rotation.y),forwardZ=Math.cos(car.rotation.y),sideX=Math.cos(car.rotation.y),sideZ=-Math.sin(car.rotation.y);
+ const driftGrip=hand&&u.type==='drift'?1.05:spec.grip;
+ const lateral=u.vx*sideX+u.vz*sideZ;const forward=u.vx*forwardX+u.vz*forwardZ;
+ const nextLateral=lateral*Math.max(0,1-driftGrip*dt);const nextForward=u.speed;
+ u.vx=forwardX*nextForward+sideX*nextLateral;u.vz=forwardZ*nextForward+sideZ*nextLateral;
+ const oldX=car.position.x,oldZ=car.position.z;car.position.x+=u.vx*dt;car.position.z+=u.vz*dt;
+ car.position.x=Math.max(-425,Math.min(425,car.position.x));car.position.z=Math.max(-425,Math.min(425,car.position.z));
+ if(driveObstacles.some(o=>Math.abs(car.position.x-o.x)<o.w/2+1.05&&Math.abs(car.position.z-o.z)<o.d/2+2.2)){car.position.x=oldX;car.position.z=oldZ;u.speed*=.16;u.vx=0;u.vz=0;}
+ for(const w of u.wheels)w.rotation.x-=u.speed*dt*1.8;
+ // Sürücü avatarı ön koltukta görünür; aynı saç/kıyafet/ten modeli korunur.
+ placeDriver(me,true);
+ const camYaw=car.rotation.y+driveYaw;const desired=new THREE.Vector3(car.position.x-Math.sin(camYaw)*10,4.8+drivePitch*5,car.position.z-Math.cos(camYaw)*10);
+ camera.position.lerp(desired,Math.min(1,dt*4));camera.lookAt(car.position.x,1.0,car.position.z);
+ $('driveSpeed').textContent=String(Math.round(Math.abs(u.speed)*3.6));
+}
+function syncDriveCars(){
+ for(let i=0;i<driveCars.length;i++){if(i===me||!driveCars[i])continue;const c=driveCars[i],t=driveTargets[i];if(!t)continue;c.position.x+=(t.x-c.position.x)*.24;c.position.z+=(t.z-c.position.z)*.24;let d=((t.r-c.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;c.rotation.y+=d*.24;const av=avatars[i];if(av&&av.visible){if(t.onFoot){av.scale.setScalar(1);av.position.x+=(t.px-av.position.x)*.28;av.position.z+=(t.pz-av.position.z)*.28;av.position.y=0;av.rotation.y=t.pr??t.r}else{const fx=Math.sin(c.rotation.y),fz=Math.cos(c.rotation.y),sx=Math.cos(c.rotation.y),sz=-Math.sin(c.rotation.y);av.scale.setScalar(.42);av.position.set(c.position.x-fx*.05-sx*.42,.38,c.position.z-fz*.05-sz*.42);av.rotation.y=c.rotation.y}}}
+}
+function sendDrivePos(){if(!driveActive||me<0)return;const now=performance.now();if(now-driveLastSend<65)return;driveLastSend=now;const c=driveCars[me],px=driveInCar?c.position.x:player.position.x,pz=driveInCar?c.position.z:player.position.z,pr=driveInCar?c.rotation.y:player.rotation.y;drivePositions[me]={x:px,z:pz,onFoot:!driveInCar};const m={t:'pos',drive:true,x:+c.position.x.toFixed(2),z:+c.position.z.toFixed(2),r:+c.rotation.y.toFixed(3),px:+px.toFixed(2),pz:+pz.toFixed(2),pr:+pr.toFixed(3),onFoot:!driveInCar,vehicle:c.userData.type};if(isHost){m.seat=me;conns.forEach(o=>o&&o.send(m))}else if(conn)conn.send(m)}
+
+
+function updateDriveCombatUI(){if(!$('driveCombat'))return;$('driveHp').textContent='CAN: '+(driveHP[me]??100)+' / 100';$('driveWeapon').textContent=driveHasWeapon?(driveWeapon===1?'1: Tüfek · G: Gizle':'2: Tabanca · G: Gizle'):'Silah: Gizli · 1/2: Çıkar';$('driveScore').textContent='Öldürme: '+(driveKills[me]||0)+'\n'+driveKills.map((k,i)=>L.names[i]?L.names[i]+': '+(driveHP[i]??100)+' HP · '+k+' öldürme':null).filter(Boolean).join('\n');$('driveFeed').textContent=driveFeed;}
+function sendDriveHit(target){if(!driveActive||driveInCar||target===me||driveHP[me]<=0)return;const m={t:'driveHit',target,weapon:driveWeapon};if(isHost)applyDriveHit(me,target,driveWeapon);else if(conn)conn.send(m);}
+function applyDriveHit(attacker,target,weapon){if(!isHost||attacker===target||!driveActive||target<0||target>=5||attacker<0||attacker>=5)return;if(driveHP[attacker]<=0||driveHP[target]<=0)return;const a=drivePositions[attacker],b=drivePositions[target];if(!a||!b||!a.onFoot||!b.onFoot)return;const dist=Math.hypot(a.x-b.x,a.z-b.z);if(dist>85)return;const now=performance.now(),cooldown=weapon===2?850:170;if(now-driveHitTimes[attacker]<cooldown)return;driveHitTimes[attacker]=now;driveHP[target]=Math.max(0,driveHP[target]-(weapon===2?50:25));if(driveHP[target]===0){driveKills[attacker]++;const killer=L.names[attacker]||('Oyuncu '+(attacker+1)),victim=L.names[target]||('Oyuncu '+(target+1));driveFeed=killer+' → '+victim+' elendi';}else{driveFeed=(L.names[attacker]||'Oyuncu')+' enerji isabeti: '+(L.names[target]||'Oyuncu')+' ('+driveHP[target]+' HP)';}broadcastDriveCombat();if(driveHP[target]===0){setTimeout(()=>{if(!driveActive)return;driveHP[target]=100;const c=driveCars[target];if(c){c.position.set((target%3-1)*5.5,0,(target<3?4:-4));c.userData.speed=0;c.userData.vx=0;c.userData.vz=0;driveTargets[target]={x:c.position.x,z:c.position.z,r:c.rotation.y,onFoot:false,px:c.position.x,pz:c.position.z};}drivePositions[target]=c?{x:c.position.x,z:c.position.z,onFoot:false}:null;if(target===me){driveInCar=true;placeDriver(me,true)}broadcastDriveCombat();if(c){const rp={t:'pos',drive:true,seat:target,x:c.position.x,z:c.position.z,r:c.rotation.y,px:c.position.x,pz:c.position.z,onFoot:false,vehicle:c.userData.type};conns.forEach(o=>o&&o.send(rp))}},3000);}}
+function broadcastDriveCombat(){const packet={t:'driveCombat',hp:driveHP,kills:driveKills,feed:driveFeed};updateDriveCombatUI();conns.forEach(c=>c&&c.send(packet));}
+function receiveDriveCombat(d){driveHP=d.hp||driveHP;driveKills=d.kills||driveKills;driveFeed=d.feed||driveFeed;updateDriveCombatUI();}
+
 function animate(){
  requestAnimationFrame(animate);
+ const frameNow=performance.now(),driveDt=Math.min(.05,(frameNow-(driveLastTime||frameNow))/1000);driveLastTime=frameNow;
+ if(driveActive){updateDrive(driveDt);updateDriveEngineSound();syncDriveCars();sendDrivePos();updateVoiceMouths();renderer.render(scene,camera);return}
  if(touchDevice)syncMobileControls();
  if(!seated){
   const f=(keys.w?1:0)-(keys.s?1:0),r=(keys.a?1:0)-(keys.d?1:0);
@@ -1208,20 +1591,21 @@ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updat
 
 /* ---------- LOBİ ve ÇEVRİMİÇİ ---------- */
 const nm=()=>($('nm').value.trim()||'Oyuncu');
-const lobbyTxt=()=>({chess:'Satranç\n',rou:'Rus Ruleti\n',okey:'101 Okey\n'}[mode])+L.names.map((n,i)=>L.type[i]==='none'?null:`${i+1}. ${L.type[i]==='empty'?'(boş, bot olacak)':n}`).filter(Boolean).join('\n');
-function initL(){const n=mode==='rou'?10:4;L.type=mode==='chess'?['human','none','empty','none']:Array.from({length:n},(_,i)=>i?'empty':'human');L.names=Array(n).fill('');L.look=Array(n).fill(null)}
-function startGame(solo){if(mode==='rou'){if(solo&&!botsOn){botsOn=true;$('bt').textContent='Botlar: Açık'}
+const lobbyTxt=()=>({chess:'Satranç\n',rou:'Rus Ruleti\n',okey:'101 Okey\n',drive:'Şehir Sürüşü\n'}[mode])+L.names.map((n,i)=>L.type[i]==='none'?null:`${i+1}. ${L.type[i]==='empty'?(mode==='drive'?'(boş)':'(boş, bot olacak)'):n}`).filter(Boolean).join('\n');
+function initL(){const n=mode==='rou'?10:(mode==='drive'?5:4);L.type=mode==='chess'?['human','none','empty','none']:Array.from({length:n},(_,i)=>i?'empty':'human');L.names=Array(n).fill('');L.look=Array(n).fill(null);L.vehicle=Array(n).fill('calm');L.vehicle[0]=$('driveSelect').value}
+function startGame(solo){if(mode==='drive'){startDriving();return}if(mode==='rou'){if(solo&&!botsOn){botsOn=true;$('bt').textContent='Botlar: Açık'}
  if(!botsOn&&L.type.filter(t=>t==='human').length<2){$('lt').textContent='Botlar kapalı: en az 2 oyuncu gerekir.\n'+lobbyTxt();return}}
  newGame();sendAll();botTick()}
 function lobbyBroadcast(){$('lt').textContent='Oda kodu: '+code+'\n'+lobbyTxt();conns.forEach(c=>c&&c.send({t:'lobby',txt:'Oda kodu: '+code+'\n'+lobbyTxt()}))}
 let code='';
-function setM(m){mode=m;for(const[k,v]of[['m1','okey'],['m2','chess'],['m3','rou']])$(k).classList.toggle('on',v===m);$('bt').style.display=m==='rou'?'':'none'}
-$('m1').onclick=()=>setM('okey');$('m2').onclick=()=>setM('chess');$('m3').onclick=()=>setM('rou');
+function setM(m){mode=m;for(const[k,v]of[['m1','okey'],['m2','chess'],['m3','rou'],['m4','drive']])$(k).classList.toggle('on',v===m);$('bt').style.display=m==='rou'?'':'none';$('driveSelect').style.display=m==='drive'?'block':'none';$('solo').textContent=m==='drive'?'Tek başına':'Tek başına (botlarla)'}
+$('m1').onclick=()=>setM('okey');$('m2').onclick=()=>setM('chess');$('m3').onclick=()=>setM('rou');$('m4').onclick=()=>setM('drive');
 $('bt').onclick=()=>{botsOn=!botsOn;$('bt').textContent='Botlar: '+(botsOn?'Açık':'Kapalı')};
 $('sf').onclick=()=>{if(RU&&RU.turn===me&&!RU.over)send({t:'shoot',target:me})};
 $('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;if(touchDevice)$('sa').textContent=aim?'Hedef seçiliyor…':'Oyuncu seç';msg(aim?'Hedef oyuncuya dokun (iptal için tekrar bas).':'Sıra sende.')};
 $('again').onclick=()=>{if(isHost)restart();else if(conn)conn.send({t:'again'})};
-$('exit').onclick=()=>{stopVoice();location.reload()};
+$('exit').onclick=()=>{stopVoice();location.reload()};$('driveSwitchCar').onclick=()=>{if(!driveActive||!driveInCar)return;const next=driveCars[me].userData.type==='drift'?'calm':'drift';switchDriveCar(me,next);if(isHost){const m={t:'pos',drive:true,x:driveCars[me].position.x,z:driveCars[me].position.z,r:driveCars[me].rotation.y,vehicle:next};conns.forEach(c=>c&&c.send(m))}else if(conn)conn.send({t:'pos',drive:true,x:driveCars[me].position.x,z:driveCars[me].position.z,r:driveCars[me].rotation.y,vehicle:next});$('driveSwitchCar').textContent=next==='drift'?'Sakin arabaya geç':'Drift arabasına geç';msg(next==='drift'?'Drift arabasına geçtin.':'Sakin sürüş arabasına geçtin.');};$('driveExit').onclick=()=>{if(driveActive){driveInCar=!driveInCar;placeDriver(me,driveInCar);showDriveWeapon(!driveInCar);$('driveExit').textContent=driveInCar?'Arabadan in (E)':'Arabaya bin (E)';msg(driveInCar?'Arabaya bindin.':'Arabadan indin.')}};
+$('driveBackMenu').onclick=()=>{if(!driveActive)return;unlockDrivePointer();clearInterval(driveAutoFireTimer);driveAutoFireTimer=null;driveShotOnDown=false;for(const o of driveWorld)scene.remove(o);driveWorld=[];for(const c of driveCars)if(c)scene.remove(c);driveCars=[];for(const a of avatars)if(a)a.visible=false;for(const [o,v] of driveSavedVisibility)o.visible=v;driveSavedVisibility=[];driveActive=false;driveInCar=true;driveFirstPerson=false;driveHasWeapon=false;for(const k in keys)keys[k]=false;showDriveWeapon(false);$('driveCrosshair').style.display='none';$('driveWeaponArt').style.display='none';$('driveCombat').style.display='none';$('driveHud').style.display='none';$('driveHelp').style.display='none';$('driveExit').style.display='none';$('driveBackMenu').style.display='none';$('driveSwitchCar').style.display='none';$('chatPanel').style.display='none';$('lobby').style.display='block';$('game').style.display='none';$('ui').style.display='none';$('help').style.display='none';$('tip').textContent='';started=false;mode='101';camera.position.set(0,8,12);camera.lookAt(0,0,0);msg('Ana menüye döndün.');};
 $('solo').onclick=()=>{isHost=true;me=0;initL();L.names[0]=nm();L.look[0]=myLook();startGame(true)};
 $('mk').onclick=()=>{
  if(!window.Peer){$('lt').textContent='PeerJS yüklenemedi, internetini kontrol et.';return}
@@ -1233,10 +1617,10 @@ $('mk').onclick=()=>{
  peer.on('open',()=>{hostPeerId=peer.id;lobbyBroadcast();$('go').hidden=false});
  peer.on('connection',c=>{
   c.on('data',d=>{
-   if(d.t==='join'){const s=L.type.indexOf('empty');if(G||s<0){c.send({t:'full'});return}
-    L.type[s]='human';L.names[s]=d.name;L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode,hostPeerId:peer.id});lobbyBroadcast()}
-   else if(d.t==='chat'){receiveChat(d);conns.forEach(o=>o&&o!==c&&o.send(d))}else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));onPos(d)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
-  c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;
+   if(d.t==='join'){const s=L.type.indexOf('empty');if(G||driveActive||s<0){c.send({t:'full'});return}
+    L.type[s]='human';L.names[s]=d.name;L.vehicle[s]=d.vehicle==='drift'?'drift':'calm';L.look[s]=d.look?{s:cl(d.look.s),h:cl(d.look.h),k:cl(d.look.k),pc:cl(d.look.pc||'#252b35'),hs:['classic','spiky','side','long','bob','pony','braid','curly','pixie','waves','bun','afro'].includes(d.look.hs)?d.look.hs:'classic',cs:['normal','hoodie','jacket'].includes(d.look.cs)?d.look.cs:'normal',ps:['normal','jeans','shorts'].includes(d.look.ps)?d.look.ps:'normal',g:d.look.g==='female'?'female':'male'}:null;conns[s]=c;c._s=s;c.send({t:'seat',seat:s,mode,hostPeerId:peer.id});lobbyBroadcast()}
+   else if(d.t==='driveStart'){startDriving(d)}else if(d.t==='chat'){receiveChat(d);conns.forEach(o=>o&&o!==c&&o.send(d))}else if(d.t==='again')restart();else if(d.t==='pos'){d.seat=c._s;conns.forEach(o=>o&&o!==c&&o.send(d));if(d.drive&&driveActive){const t=driveTargets[d.seat];if(t){t.x=d.x;t.z=d.z;t.r=d.r;t.onFoot=!!d.onFoot;t.px=d.px??d.x;t.pz=d.pz??d.z;t.pr=d.pr??d.r}drivePositions[d.seat]={x:d.onFoot?d.px:d.x,z:d.onFoot?d.pz:d.z,onFoot:!!d.onFoot};if(d.vehicle&&driveCars[d.seat]&&driveCars[d.seat].userData.type!==d.vehicle)switchDriveCar(d.seat,d.vehicle)}else onPos(d)}else if(d.t==='driveHit'){applyDriveHit(c._s,d.target,d.weapon===2?2:1)}else if(d.t==='tea'||d.t==='sip'){d.seat=c._s;bcast(d)}else act(c._s,d)});
+  c.on('close',()=>{const s=c._s;if(s==null)return;conns[s]=null;if(driveActive){if(driveCars[s])driveCars[s].visible=false;if(avatars[s])avatars[s].visible=false;L.type[s]='empty';L.names[s]='';return}
    if(G){if(G.mode==='rou'&&!botsOn)rouLeave(s);else{G.type[s]='bot';L.type[s]='empty';G.names[s]+=' (bot)';sendAll();botTick()}}else{L.type[s]='empty';L.names[s]='';lobbyBroadcast()}});
  });
 };
@@ -1248,12 +1632,14 @@ $('jn').onclick=()=>{
  peer.on('error',e=>$('lt').textContent='Bağlantı hatası: '+e.type);
  peer.on('call',handleVoiceCall);
  peer.on('open',()=>{conn=peer.connect('okey3d-'+c,{reliable:true});
-  conn.on('open',()=>conn.send({t:'join',name:nm(),look:myLook(),peerId:peer.id}));
+  conn.on('open',()=>conn.send({t:'join',name:nm(),look:myLook(),vehicle:$('driveSelect').value,peerId:peer.id}));
   conn.on('data',d=>{
    if(d.t==='chat')receiveChat(d);
+   else if(d.t==='driveStart')startDriving(d);
    else if(d.t==='st')apply(d);
    else if(d.t==='tea'||d.t==='sip')onNet(d);
-   else if(d.t==='pos')onPos(d);
+   else if(d.t==='pos'){if(d.drive&&driveActive){const t=driveTargets[d.seat];if(t){t.x=d.x;t.z=d.z;t.r=d.r;t.onFoot=!!d.onFoot;t.px=d.px??d.x;t.pz=d.pz??d.z;t.pr=d.pr??d.r}drivePositions[d.seat]={x:d.onFoot?d.px:d.x,z:d.onFoot?d.pz:d.z,onFoot:!!d.onFoot};if(d.vehicle&&driveCars[d.seat]&&driveCars[d.seat].userData.type!==d.vehicle)switchDriveCar(d.seat,d.vehicle)}else onPos(d)}
+   else if(d.t==='driveCombat')receiveDriveCombat(d);
    else if(d.t==='lobby')$('lt').textContent=d.txt+'\n\nOda sahibinin başlatması bekleniyor...';
    else if(d.t==='full')$('lt').textContent='Oda dolu ya da oyun başlamış.';
    else if(d.t==='seat'){me=d.seat;mode=d.mode||'okey';hostPeerId=d.hostPeerId||('okey3d-'+c)}});
