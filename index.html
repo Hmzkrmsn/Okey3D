@@ -108,10 +108,22 @@ html.mobile-block body>*:not(#mobileNotice){display:none!important}
 html.mobile-block #mobileNotice{display:flex}
 </style>
 <script>
+// Bu kontrol, masaüstü sitesi açık olsa bile telefonu mümkün olduğunca erken tanır.
+// Tabletleri şimdilik otomatik olarak engellemez; ayrı testten sonra karar verilecek.
 (function(){
-  var ua=navigator.userAgent||'';
-  var isPhone=/iPhone|iPod|Android.*Mobile|Windows Phone|IEMobile|Opera Mini/i.test(ua);
-  if(isPhone) document.documentElement.classList.add('mobile-block');
+  var ua = navigator.userAgent || '';
+  var uaDataMobile = !!(navigator.userAgentData && navigator.userAgentData.mobile);
+  var phoneUA = /iPhone|iPod|Android.*Mobile|Windows Phone|IEMobile|Opera Mini/i.test(ua);
+  var sw = (window.screen && screen.width) || window.innerWidth || 0;
+  var sh = (window.screen && screen.height) || window.innerHeight || 0;
+  var shortSide = Math.min(sw, sh);
+  var longSide = Math.max(sw, sh);
+  // Masaüstü sitesi UA bilgisini değiştirebilir; telefonun fiziksel ekranı ve
+  // dokunmatik desteği bu durumda ek sinyal olarak kullanılır.
+  var compactTouchPhone = navigator.maxTouchPoints > 0 && shortSide <= 600 && longSide <= 1100;
+  if (uaDataMobile || phoneUA || compactTouchPhone) {
+    document.documentElement.classList.add('mobile-block');
+  }
 })();
 </script>
 </head>
