@@ -44,6 +44,59 @@ button:disabled{opacity:.35;cursor:default}
 
 /* İstenen iki kontrolü gizle; diğer butonların HTML ve işlevleri aynen kalsın. */
 #gr, #cl { display: none !important; }
+
+/* Telefon/tablet uyarlamasi */
+#mobileMove{display:none}
+@media (pointer:coarse), (max-width:700px){
+ html,body{width:100%;height:100%;overscroll-behavior:none}
+ #ui{display:none}
+ #game{max-height:48vh;overflow-y:auto;overflow-x:hidden;padding:8px 7px calc(12px + env(safe-area-inset-bottom));}
+ #status{font-size:12px;line-height:1.3;padding:2px 4px}
+ #pieceName,#okeyInfo{font-size:12px;margin:2px 0}
+ #tiles{justify-content:flex-start;gap:4px;padding:8px 5px 5px;scrollbar-width:thin;touch-action:pan-x}
+ .tile{flex-basis:34px;height:49px;font-size:18px}
+ #buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:none;margin:5px 0 0}
+ #buttons button{min-height:42px;padding:9px 5px;font-size:12px;white-space:normal;touch-action:manipulation}
+ #voiceSensitivity{grid-column:1/-1;justify-content:center;min-height:38px}
+ #voiceSensitivity input{width:min(45vw,180px);height:28px}
+ #pttBtn{position:fixed;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:15;width:112px;min-height:54px;border:2px solid #fff;box-shadow:0 3px 14px #0009;font-size:13px}
+ #buttons{padding-right:0}
+ #chatPanel{top:8px;right:8px;width:min(52vw,250px);padding:7px;max-height:24vh;overflow:hidden}
+ #chatLog{height:58px;max-height:58px;font-size:11px;margin-bottom:5px}
+ #chatInput{font-size:16px;padding:8px;min-width:0}
+ #chatSend{padding:7px 8px;font-size:11px}
+ #help{top:8px;left:8px;right:auto;max-width:42vw;padding:7px;font-size:10px}
+ #lobby{overflow-y:auto;align-items:flex-start;padding:12px 0}
+ .box{width:min(520px,96vw);padding-bottom:18px}
+ .box input{font-size:16px;max-width:42vw}
+ .lookRow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px}
+ .box select{max-width:44vw;font-size:14px}
+ #modes button{min-height:42px;padding:9px 12px}
+ #mobileMove{display:grid;position:fixed;left:12px;bottom:calc(48vh + 12px);z-index:9;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px;gap:4px;touch-action:none;user-select:none}
+ #mobileMove button{padding:0;min-height:48px;font-size:20px;background:#183d5bde;border:1px solid #a9d9ff;box-shadow:0 2px 8px #0008;touch-action:none}
+ #mobileMove [data-key="w"]{grid-column:2;grid-row:1}
+ #mobileMove [data-key="a"]{grid-column:1;grid-row:2}
+ #mobileMove [data-key="s"]{grid-column:2;grid-row:2}
+ #mobileMove [data-key="d"]{grid-column:3;grid-row:2}
+ body.mobile-seated #mobileMove{display:none}
+ #autoInfo{font-size:10px;padding:5px 6px;gap:5px;margin-top:4px}
+ #myHealth{font-size:17px;margin:2px}
+ canvas{touch-action:none}
+}
+@media (max-width:380px){
+ #buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #voiceSensitivity{grid-column:1/-1}
+ #pttBtn{width:100px;min-height:50px}
+ #mobileMove{transform:scale(.9);transform-origin:bottom left;left:7px}
+}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+ #game{max-height:54vh;padding-top:4px}
+ #chatPanel{max-height:35vh;width:36vw}
+ #chatLog{height:45px;max-height:45px}
+ #mobileMove{bottom:calc(54vh + 5px);transform:scale(.82);transform-origin:bottom left}
+ body.mobile-seated #mobileMove{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -81,8 +134,9 @@ button:disabled{opacity:.35;cursor:default}
 <button id="op" disabled>Aç</button>
 <button id="cl">Temizle</button>
 <button id="sit">Otur / Kalk (E)</button>
-<button id="voiceBtn" class="off" title="V tuşu">Ses: Kapalı (V)</button>
-<label id="voiceSensitivity" title="Ağız hareketi için mikrofon hassasiyeti">Ses hassasiyeti <input id="voiceGain" type="range" min="1" max="10" value="6" step="1"><output id="voiceGainValue">6</output></label>
+<button id="voiceBtn" class="off">Sesli sohbet: Kapalı</button>
+<button id="pttBtn" class="off" disabled title="Konuşmak için basılı tut">Bas-Konuş</button>
+<label id="voiceSensitivity" title="Mikrofon giriş kazancı">Mikrofon hassasiyeti <input id="voiceGain" type="range" min="1" max="10" value="6" step="1"><output id="voiceGainValue">6</output></label>
 <button id="again" hidden>Tekrar oyna</button>
 <button id="exit">Çık</button>
 <button id="sf" style="display:none" disabled>Kendine ateş et</button>
@@ -93,6 +147,12 @@ button:disabled{opacity:.35;cursor:default}
 </div>
 <div id="okeyInfo" aria-live="polite" style="display:none"></div>
 <div id="autoInfo" aria-live="polite"><span id="autoTotal">Oto gruplanan: 0 taş</span><span id="autoPairs">Çift: 0 / 5 çift</span></div>
+</div>
+<div id="mobileMove" aria-label="Telefon hareket kontrolleri">
+<button type="button" data-key="w" aria-label="İleri">▲</button>
+<button type="button" data-key="a" aria-label="Sola">◀</button>
+<button type="button" data-key="s" aria-label="Geri">▼</button>
+<button type="button" data-key="d" aria-label="Sağa">▶</button>
 </div>
 <div id="chatPanel"><div id="chatLog" aria-live="polite"></div><div id="chatRow"><input id="chatInput" maxlength="240" placeholder="Mesajını yaz..."><button id="chatSend">Gönder</button></div></div>
 
@@ -927,6 +987,7 @@ function showMode(){const c=mode==='chess',r=mode==='rou',o=mode==='okey';chessG
  tbl.forEach(x=>x.visible=!r);rouG.visible=r;gun.visible=r;if(!r)rLab.forEach(l=>l.visible=false);
  for(const id of['dp','dd','ds','sd','cf','gr','op','cl'])$(id).style.display=o?'':'none';
  $('sf').style.display=$('sa').style.display=r?'':'none';
+ if(touchDevice){$('sf').textContent='Kendine';$('sa').textContent=aim?'Hedef seçiliyor…':'Oyuncu seç';}
  $('myHealth').style.display=r?'block':'none';
  $('autoInfo').style.display=o?'flex':'none';
  $('okeyInfo').style.display=o?'block':'none';
@@ -1011,22 +1072,37 @@ function sitToggle(){
 }
 $('sit').onclick=sitToggle;
 const keys={};
-let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;const voiceMeters=new Map();
+const touchDevice=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+if(touchDevice)document.body.classList.add('mobile-device');
+function syncMobileControls(){document.body.classList.toggle('mobile-seated',!!seated);}
+if(touchDevice){
+ document.querySelectorAll('#mobileMove [data-key]').forEach(b=>{
+  const k=b.dataset.key;
+  const down=e=>{e.preventDefault();keys[k]=true;b.setPointerCapture?.(e.pointerId)};
+  const up=e=>{e.preventDefault();keys[k]=false};
+  b.addEventListener('pointerdown',down);['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,up));
+ });
+}
+let voiceOn=false,localVoice=null,outgoingVoice=null,voiceGainNode=null,voiceCalls=[],hostPeerId=null,pttHeld=false;const voiceMeters=new Map();
 let voiceSensitivity=6;
-$('voiceGain').addEventListener('input',()=>{voiceSensitivity=Number($('voiceGain').value);$('voiceGainValue').textContent=voiceSensitivity});
+function applyMicSensitivity(){if(voiceGainNode){voiceGainNode.gain.setTargetAtTime(.35+(voiceSensitivity-1)*.19,AC.currentTime,.035)}$('voiceGainValue').textContent=voiceSensitivity}
+$('voiceGain').addEventListener('input',()=>{voiceSensitivity=Number($('voiceGain').value);applyMicSensitivity()});
 function voiceThreshold(){return .024-(voiceSensitivity*.0018)}
 function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=512;an.smoothingTimeConstant=.18;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.fftSize),speaking:false});}catch(e){}}
 function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0,peak=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d;peak=Math.max(peak,Math.abs(d))}const rms=Math.sqrt(sum/v.data.length),threshold=voiceThreshold()*(v.speaking?.78:1);v.speaking=rms>threshold&&peak>threshold*1.45;const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=v.speaking;}}
+function setPtt(held){pttHeld=!!held;const track=outgoingVoice?.getAudioTracks?.()[0];if(track)track.enabled=voiceOn&&pttHeld;$('pttBtn').classList.toggle('off',!pttHeld);$('pttBtn').textContent=pttHeld?'Konuşuyorsun…':'Bas-Konuş';}
 function chatLine(name,text){const log=$('chatLog');log.textContent+=(log.textContent?'\n':'')+name+': '+text;log.scrollTop=log.scrollHeight}
 function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;const packet={t:'chat',name:nm()||'Oyuncu',text};chatLine('Sen',text);if(isHost)conns.forEach(c=>c&&c.send(packet));else if(conn)conn.send(packet);input.value=''}
 $('chatSend').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}if(e.key==='Escape'){$('chatInput').blur()}});
-function stopVoice(){voiceOn=false;if(localVoice){localVoice.getTracks().forEach(t=>t.stop());localVoice=null}voiceCalls.forEach(c=>{try{c.close()}catch{}});voiceCalls=[];$('voiceBtn').textContent='Ses: Kapalı (V)';$('voiceBtn').classList.add('off')}
-async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1,sampleRate:48000}});meterStream(localVoice,me);voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
+function stopVoice(){setPtt(false);voiceOn=false;if(localVoice){localVoice.getTracks().forEach(t=>t.stop());localVoice=null}if(outgoingVoice){outgoingVoice.getTracks().forEach(t=>t.stop());outgoingVoice=null}if(voiceGainNode){try{voiceGainNode.disconnect()}catch{}voiceGainNode=null}voiceCalls.forEach(c=>{try{c.close()}catch{}});voiceCalls=[];$('voiceBtn').textContent='Sesli sohbet: Kapalı';$('voiceBtn').classList.add('off');$('pttBtn').disabled=true}
+async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000}}});meterStream(localVoice,me);initAC();const source=AC.createMediaStreamSource(localVoice);voiceGainNode=AC.createGain();source.connect(voiceGainNode);applyMicSensitivity();const dest=AC.createMediaStreamDestination();voiceGainNode.connect(dest);outgoingVoice=dest.stream;outgoingVoice.getAudioTracks().forEach(t=>t.enabled=false);voiceOn=true;$('voiceBtn').textContent='Sesli sohbet: Açık';$('voiceBtn').classList.remove('off');$('pttBtn').disabled=false;if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,outgoingVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,outgoingVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
 $('voiceBtn').onclick=toggleVoice;
-function watchVoice(call){const audioId='remoteVoice_'+String(call.peer||Math.random()).replace(/[^a-zA-Z0-9_-]/g,'_');call.on('stream',stream=>{const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=$(audioId);if(!audio){audio=document.createElement('audio');audio.id=audioId;audio.autoplay=true;audio.playsInline=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$(audioId);if(a){a.pause();a.srcObject=null;a.remove()}});return call}
-function handleVoiceCall(call){call.answer(voiceOn?localVoice:undefined);watchVoice(call)}
+const ptt=$('pttBtn');ptt.addEventListener('pointerdown',e=>{e.preventDefault();if(voiceOn){ptt.setPointerCapture?.(e.pointerId);setPtt(true)}});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>ptt.addEventListener(ev,()=>setPtt(false)));ptt.addEventListener('contextmenu',e=>e.preventDefault());addEventListener('blur',()=>setPtt(false));
+function tuneVoiceCall(call){try{const pc=call.peerConnection;if(!pc)return;for(const sender of pc.getSenders()){if(sender.track?.kind==='audio'){const params=sender.getParameters();params.encodings=params.encodings?.length?params.encodings:[{}];params.encodings[0].maxBitrate=96000;params.encodings[0].priority='high';sender.setParameters(params).catch(()=>{})}}for(const receiver of pc.getReceivers()){if(receiver.track?.kind==='audio'&&'jitterBufferTarget' in receiver)receiver.jitterBufferTarget=120}}catch(e){}}
+function watchVoice(call){tuneVoiceCall(call);const audioId='remoteVoice_'+String(call.peer||Math.random()).replace(/[^a-zA-Z0-9_-]/g,'_');call.on('stream',stream=>{tuneVoiceCall(call);const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=$(audioId);if(!audio){audio=document.createElement('audio');audio.id=audioId;audio.autoplay=true;audio.playsInline=true;audio.volume=1;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$(audioId);if(a){a.pause();a.srcObject=null;a.remove()}});return call}
+function handleVoiceCall(call){call.answer(voiceOn?outgoingVoice:undefined);watchVoice(call)}
 function receiveChat(d){chatLine(d.name||'Oyuncu',d.text||'')}
-addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle();if(k==='v'&&!e.repeat)toggleVoice()});
+addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 let drag=false,lx=0,ly=0;
 let sx=0,sy=0;const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
@@ -1061,6 +1137,7 @@ function updateAvatars(){for(let i=0;i<avatars.length;i++){if(i===me)continue;co
 const look=new THREE.Vector3();
 function animate(){
  requestAnimationFrame(animate);
+ if(touchDevice)syncMobileControls();
  if(!seated){
   const f=(keys.w?1:0)-(keys.s?1:0),r=(keys.a?1:0)-(keys.d?1:0);
   const vx=(Math.sin(yaw)*f+Math.cos(yaw)*r)*.09,vz=(Math.cos(yaw)*f-Math.sin(yaw)*r)*.09;
@@ -1098,7 +1175,7 @@ function setM(m){mode=m;for(const[k,v]of[['m1','okey'],['m2','chess'],['m3','rou
 $('m1').onclick=()=>setM('okey');$('m2').onclick=()=>setM('chess');$('m3').onclick=()=>setM('rou');
 $('bt').onclick=()=>{botsOn=!botsOn;$('bt').textContent='Botlar: '+(botsOn?'Açık':'Kapalı')};
 $('sf').onclick=()=>{if(RU&&RU.turn===me&&!RU.over)send({t:'shoot',target:me})};
-$('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;msg(aim?'Hedef oyuncuya tıkla (iptal için tekrar bas).':'Sıra sende.')};
+$('sa').onclick=()=>{if(!RU||RU.turn!==me||RU.over)return;aim=!aim;if(touchDevice)$('sa').textContent=aim?'Hedef seçiliyor…':'Oyuncu seç';msg(aim?'Hedef oyuncuya dokun (iptal için tekrar bas).':'Sıra sende.')};
 $('again').onclick=()=>{if(isHost)restart();else if(conn)conn.send({t:'again'})};
 $('exit').onclick=()=>{stopVoice();location.reload()};
 $('solo').onclick=()=>{isHost=true;me=0;initL();L.names[0]=nm();L.look[0]=myLook();startGame(true)};
