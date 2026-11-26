@@ -188,11 +188,12 @@ const blk=new THREE.MeshStandardMaterial({color:0x151515}),lip=new THREE.MeshSta
 function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
  const p=new THREE.Group(),sh=new THREE.MeshStandardMaterial({color:col}),hm=new THREE.MeshStandardMaterial({color:hc}),skin=new THREE.MeshStandardMaterial({color:sk}),pants=new THREE.MeshStandardMaterial({color:0x252b35});
  const add=(g,m,x,y,z)=>{m.position.set(x,y,z);m.castShadow=true;g.add(m);return m};
- // Mevcut yuvarlak kafa ve gövde korunur.
+ // Kafa ayrı bir pivotta: gövde ve avatar önizlemesi etkilenmeden hareket eder.
  add(p,new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,1.1,6),sh),0,1.25,0);
- add(p,new THREE.Mesh(new THREE.IcosahedronGeometry(.4,1),skin),0,2.1,0);
- // Saçın klasik modeli, eski karakterdekiyle aynı geometri.
- const hair=new THREE.Group();p.add(hair);
+ const head=new THREE.Group();head.position.set(0,2.1,0);p.add(head);
+ add(head,new THREE.Mesh(new THREE.IcosahedronGeometry(.4,1),skin),0,0,0);
+ // Saç modellerinin mevcut dünya konumları kafa pivotuna taşınır.
+ const hair=new THREE.Group();hair.position.y=-2.1;head.add(hair);
  add(hair,new THREE.Mesh(new THREE.SphereGeometry(.44,16,12,0,Math.PI*2,0,Math.PI*.5),hm),0,2.17,-.03);
  const fringe=add(hair,new THREE.Mesh(new THREE.BoxGeometry(.5,.1,.12),hm),0,2.36,.33);
  // Dikenli saç modeli
@@ -264,9 +265,9 @@ function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
  for(const x of[-.35,.35]){const q=new THREE.Mesh(new THREE.CylinderGeometry(.095,.13,.88,12),hm);q.position.set(x,1.82,.17);q.rotation.z=x*.12;q.castShadow=true;femaleHair.add(q)}
  femaleHair.visible=false;
  // Yüz ayrıntıları
- for(const x of[-.14,.14])add(p,new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),blk),x,2.13,.36);
- add(p,new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.07),skin),0,2.04,.41);
- add(p,new THREE.Mesh(new THREE.BoxGeometry(.15,.035,.04),lip),0,1.93,.37);
+ for(const x of[-.14,.14])add(head,new THREE.Mesh(new THREE.SphereGeometry(.05,8,8),blk),x,.03,.36);
+ add(head,new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.07),skin),0,-.06,.41);
+ const mouth=add(head,new THREE.Mesh(new THREE.BoxGeometry(.15,.035,.04),lip),0,-.17,.37);
  // Üst kıyafet ekleri: kapüşonlu ve ceket için ayrı, görünür ayrıntılar.
  const clothes=new THREE.Group();p.add(clothes);
  const detailMat=new THREE.MeshStandardMaterial({color:0xd8e3eb,roughness:.72});
@@ -328,7 +329,7 @@ function person(col,hc=0x2b1b12,sk=0xffc38e,targetScene=scene){
   sleeves.push({sleeve,cuff,sleeveSeam});
   p.add(g);a.push(g);
  }
- p.userData={l,a,m:{sh,hm,skin,pants},styles:{hair,spikes,fringe,sideHair,longHair,bobHair,ponyHair,braidHair,curlyHair,pixieHair,wavesHair,bunHair,afroHair,femaleHair,hood,pocket,pocketSeam,hoodieStrings,jacket,sleeves}};
+ p.userData={l,a,head,mouth,m:{sh,hm,skin,pants},styles:{hair,spikes,fringe,sideHair,longHair,bobHair,ponyHair,braidHair,curlyHair,pixieHair,wavesHair,bunHair,afroHair,femaleHair,hood,pocket,pocketSeam,hoodieStrings,jacket,sleeves}};
  targetScene.add(p);return p;
 }
 function setLook(p,l){
@@ -999,14 +1000,16 @@ function sitToggle(){
 }
 $('sit').onclick=sitToggle;
 const keys={};
-let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;
+let voiceOn=false,localVoice=null,voiceCalls=[],hostPeerId=null;const voiceMeters=new Map();
+function meterStream(stream,seat){try{initAC();if(!AC||voiceMeters.has(seat))return;const src=AC.createMediaStreamSource(stream),an=AC.createAnalyser();an.fftSize=512;src.connect(an);voiceMeters.set(seat,{an,data:new Uint8Array(an.frequencyBinCount)});}catch(e){}}
+function updateVoiceMouths(){for(const [seat,v] of voiceMeters){v.an.getByteTimeDomainData(v.data);let sum=0;for(const n of v.data){const d=(n-128)/128;sum+=d*d}const level=Math.sqrt(sum/v.data.length);const av=seat===me?player:avatars[seat];if(av)av.userData.speaking=level>.025;}}
 function chatLine(name,text){const log=$('chatLog');log.textContent+=(log.textContent?'\n':'')+name+': '+text;log.scrollTop=log.scrollHeight}
 function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;const packet={t:'chat',name:nm()||'Oyuncu',text};chatLine('Sen',text);if(isHost)conns.forEach(c=>c&&c.send(packet));else if(conn)conn.send(packet);input.value=''}
 $('chatSend').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}if(e.key==='Escape'){$('chatInput').blur()}});
 function stopVoice(){voiceOn=false;if(localVoice){localVoice.getTracks().forEach(t=>t.stop());localVoice=null}voiceCalls.forEach(c=>{try{c.close()}catch{}});voiceCalls=[];$('voiceBtn').textContent='Ses: Kapalı (V)';$('voiceBtn').classList.add('off')}
-async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:true});voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
+async function toggleVoice(){if(voiceOn){stopVoice();return}try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Mikrofon desteklenmiyor');localVoice=await navigator.mediaDevices.getUserMedia({audio:true});meterStream(localVoice,me);voiceOn=true;$('voiceBtn').textContent='Ses: Açık (V)';$('voiceBtn').classList.remove('off');if(peer&&peer.open){if(isHost){conns.forEach(c=>{if(c&&c.peer)try{voiceCalls.push(watchVoice(peer.call(c.peer,localVoice)))}catch{}})}else if(hostPeerId){try{voiceCalls.push(watchVoice(peer.call(hostPeerId,localVoice)))}catch{}}}}catch(err){stopVoice();msg('Mikrofon açılamadı. Tarayıcı iznini kontrol et.')}}
 $('voiceBtn').onclick=toggleVoice;
-function watchVoice(call){call.on('stream',stream=>{let audio=document.getElementById('remoteVoice');if(!audio){audio=document.createElement('audio');audio.id='remoteVoice';audio.autoplay=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$('remoteVoice');if(a)a.srcObject=null});return call}
+function watchVoice(call){call.on('stream',stream=>{const remoteSeat=isHost?(conns.findIndex(c=>c&&c.peer===call.peer)):0;if(remoteSeat>=0)meterStream(stream,remoteSeat);let audio=document.getElementById('remoteVoice');if(!audio){audio=document.createElement('audio');audio.id='remoteVoice';audio.autoplay=true;audio.style.display='none';document.body.appendChild(audio)}audio.srcObject=stream;audio.play().catch(()=>{})});call.on('close',()=>{const a=$('remoteVoice');if(a)a.srcObject=null});return call}
 function handleVoiceCall(call){call.answer(voiceOn?localVoice:undefined);watchVoice(call)}
 function receiveChat(d){chatLine(d.name||'Oyuncu',d.text||'')}
 addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target!==$('chatInput')){e.preventDefault();$('chatInput').focus();return}if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;const k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!e.repeat)sitToggle();if(k==='v'&&!e.repeat)toggleVoice()});
@@ -1025,19 +1028,22 @@ addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.cl
  if(seated){offY=Math.max(-1.1,Math.min(1.1,offY-dx*.004));offP=Math.max(-.5,Math.min(.5,offP-dy*.004))}
  else{yaw-=dx*.005;pitch=Math.max(-.1,Math.min(1,pitch+dy*.005))}});
 
-let lastPos=0,lastSit=null,lx0=0,lz0=0;const seatV=new THREE.Vector3();
+let lastPos=0,lastSit=null,lx0=0,lz0=0,lastHeadY=99,lastHeadX=99;const seatV=new THREE.Vector3();
 function sendPos(){if(me<0||!started)return;const now=performance.now(),P=player.position;
  const moved=Math.hypot(P.x-lx0,P.z-lz0)>.02;
- if(seated===lastSit&&!(moved&&now-lastPos>90))return;
- lastPos=now;lastSit=seated;lx0=P.x;lz0=P.z;
- const m={t:'pos',x:+P.x.toFixed(2),z:+P.z.toFixed(2),r:+player.rotation.y.toFixed(2),sit:seated};
+ const headMoved=Math.abs(player.userData.head.rotation.y-lastHeadY)>.035||Math.abs(player.userData.head.rotation.x-lastHeadX)>.035;
+ if(seated===lastSit&&!(moved&&now-lastPos>90)&&!(headMoved&&now-lastPos>90))return;
+ lastPos=now;lastSit=seated;lx0=P.x;lz0=P.z;lastHeadY=player.userData.head.rotation.y;lastHeadX=player.userData.head.rotation.x;
+ const m={t:'pos',x:+P.x.toFixed(2),z:+P.z.toFixed(2),r:+player.rotation.y.toFixed(2),sit:seated,hy:+(mode==='chess'?0:lastHeadY).toFixed(2),hx:+(mode==='chess'?0:lastHeadX).toFixed(2)};
  if(isHost){m.seat=me;conns.forEach(c=>c&&c.send(m))}else if(conn)conn.send(m)}
-function onPos(m){const av=avatars[m.seat];if(!av||m.seat===me)return;const u=av.userData;u.sit=m.sit;u.tx=m.x;u.tz=m.z;u.tr=m.r}
+function onPos(m){const av=avatars[m.seat];if(!av||m.seat===me)return;const u=av.userData;u.sit=m.sit;u.tx=m.x;u.tz=m.z;u.tr=m.r;u.hy=Number.isFinite(m.hy)?m.hy:0;u.hx=Number.isFinite(m.hx)?m.hx:0}
 function updateAvatars(){for(let i=0;i<avatars.length;i++){if(i===me)continue;const av=avatars[i],u=av.userData;if(!av.visible)continue;
  if(u.sit!==false){const s=seatPos(i);av.position.lerp(seatV.set(s.x,.15,s.z),.3);av.rotation.y=A(i)+Math.PI;
   u.l.forEach(g=>g.rotation.x+=(-1.45-g.rotation.x)*.3);u.a.forEach(g=>g.rotation.x+=(-.7-g.rotation.x)*.3)}
  else{const dx=u.tx-av.position.x,dz=u.tz-av.position.z,mv=Math.hypot(dx,dz)>.03;
-  av.position.x+=dx*.3;av.position.z+=dz*.3;av.position.y+=(0-av.position.y)*.3;if(mv)av.rotation.y=u.tr;walk(av,mv)}}}
+  av.position.x+=dx*.3;av.position.z+=dz*.3;av.position.y+=(0-av.position.y)*.3;if(mv)av.rotation.y=u.tr}
+ u.head.rotation.y+=((Number.isFinite(u.hy)?u.hy:0)-u.head.rotation.y)*.18;u.head.rotation.x+=((Number.isFinite(u.hx)?u.hx:0)-u.head.rotation.x)*.18;
+ u.mouth.scale.y+=((u.speaking?2.4:1)-u.mouth.scale.y)*.32;}}
 const look=new THREE.Vector3();
 function animate(){
  requestAnimationFrame(animate);
@@ -1057,6 +1063,9 @@ function animate(){
   look.set(camera.position.x+Math.sin(ey)*Math.cos(p),camera.position.y+Math.sin(p),camera.position.z+Math.cos(ey)*Math.cos(p));
   camera.lookAt(look);
  }
+ // Satrançta kafa kamerayı takip etmez; diğer modlarda bakış yönüne yumuşakça döner.
+ if(mode!=='chess'){const dx=look.x-camera.position.x,dy=look.y-camera.position.y,dz=look.z-camera.position.z,worldYaw=Math.atan2(dx,dz),rel=((worldYaw-player.rotation.y+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;player.userData.head.rotation.y+=(Math.max(-.85,Math.min(.85,rel))-player.userData.head.rotation.y)*.16;const targetPitch=Math.max(-.42,Math.min(.42,Math.atan2(dy,Math.hypot(dx,dz))));player.userData.head.rotation.x+=(targetPitch-player.userData.head.rotation.x)*.16;}else{player.userData.head.rotation.y*=.84;player.userData.head.rotation.x*=.84;}
+ updateVoiceMouths();player.userData.mouth.scale.y+=((player.userData.speaking?2.4:1)-player.userData.mouth.scale.y)*.32;
  updateWaiter();updateTeas();walk(waiter,wState!=='idle');waiterPose();updateAvatars();sendPos();updateGun();renderer.render(scene,camera);if($('lobby').style.display!=='none')previewRenderer.render(previewScene,previewCamera);
 }
 animate();
