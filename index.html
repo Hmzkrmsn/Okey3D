@@ -10,16 +10,16 @@ body{margin:0;overflow:hidden;font-family:Arial,sans-serif;background:#182536}
 #ui,#help{position:fixed;top:12px;background:#182536ee;color:#fff;padding:12px;border-radius:10px;z-index:5;font-size:13px;line-height:1.6}
 #ui{left:12px}#help{display:none}
 #tip{color:#9ed5ff}
-#game{position:fixed;bottom:0;left:0;width:100%;background:linear-gradient(transparent,#101923 25%);padding:35px 12px 12px;z-index:5;color:#fff}
+#game{position:fixed;bottom:0;left:0;width:100%;background:linear-gradient(transparent,#101923 25%);padding:27px 10px 8px;z-index:5;color:#fff}
 #tiles{display:flex;gap:5px;overflow-x:auto;justify-content:center;padding:14px 8px 6px}
 .tile{flex:0 0 38px;height:56px;background:#f5edda;border:2px solid #c8bda5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:bold;cursor:pointer;box-shadow:0 3px 5px #0008}
 .tile.okey{border-color:#e6a400;background:#fff3c4}
 .tile.selected{transform:translateY(-12px);border:3px solid #42baff}
-#buttons{text-align:center;margin-top:6px}
+#buttons{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px;margin:4px auto 0;max-width:1200px}
 #autoInfo{display:flex;justify-content:space-between;gap:12px;max-width:900px;margin:7px auto 0;padding:7px 12px;border-radius:8px;background:#0b1724cc;color:#d6eaff;font-size:13px;font-weight:bold}
 #autoInfo span:last-child{text-align:right;color:#9ed5ff}
 @media(max-width:600px){#autoInfo{font-size:11px;padding:6px;gap:6px}}
-button{border:0;border-radius:8px;padding:10px 14px;margin:3px;background:#287ac0;color:#fff;font-weight:bold;cursor:pointer;font-size:14px}
+button{border:0;border-radius:8px;padding:8px 11px;margin:0;background:#287ac0;color:#fff;font-weight:bold;cursor:pointer;font-size:13px}
 button:disabled{opacity:.35;cursor:default}
 #tea{background:#b8561a}#drinkCoffee{background:#f1f1f1;color:#30251d}#drinkCola{background:#a51f2d}#drinkTea{background:#b8561a}#pieceName{min-height:18px;text-align:center;color:#ffe3a6;font-weight:bold;font-size:14px}
 #status{text-align:center;font-size:14px;color:#d6eaff}
@@ -40,7 +40,7 @@ button:disabled{opacity:.35;cursor:default}
 #chatLog{height:145px;overflow:auto;text-align:left;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:8px}
 #chatRow{display:flex;gap:5px}#chatInput{min-width:0;flex:1;padding:9px;border:0;border-radius:7px}#chatSend{margin:0;padding:8px 12px}
 #voiceBtn{background:#267b58}#voiceBtn.off{background:#7d3940}
-#voiceSensitivity{display:flex;align-items:center;gap:7px;font-size:12px;color:#e7f2ff;margin:5px 0 8px}#voiceSensitivity input{width:105px;accent-color:#56a8ed}#voiceSensitivity output{min-width:18px;text-align:center}
+#voiceSensitivity{display:flex;align-items:center;gap:6px;font-size:12px;color:#e7f2ff;margin:0 2px}#voiceSensitivity input{width:105px;accent-color:#56a8ed}#voiceSensitivity output{min-width:18px;text-align:center}
 
 /* İstenen iki kontrolü gizle; diğer butonların HTML ve işlevleri aynen kalsın. */
 #gr, #cl { display: none !important; }
